@@ -83,19 +83,18 @@ events.append((ws("حلم") - 0.1, pop(), -24)); events.append((ws("صبية") -
 events.append((ws("بتعرف") - 0.1, pop(), -26))
 events.append((ws("جداً") + 0.05, shimmer(), -28))                       # circle drawn
 events.append((ws("أهم") - 0.12, impact(), -24))
-events.append((ws("الوقت") + 0.05, shimmer(), -28))
+
 for T in TB[1:4]: events.append((T + 0.1, pop(), -25))                    # chapter pills
 events.append((ws("الدراكولا") - 0.3, pop(), -24))
 events.append((ws("البيبي", 1) - 0.15, pop(), -23)); events.append((ws("البيبي", 1), shimmer(), -24))
 events.append((TB[2] + 0.3, pop(), -25))
 for w in ("الشتاء", "آخر"): events.append((ws(w) - 0.3, pop(), -23)); events.append((ws(w) + 0.35, pop(), -27))
-events.append((ws("الخريف") + 0.3, shimmer(), -27))
+events.append((ws("الخريف") + 0.3, shimmer(), -30))
 events.append((ws("نقاهة") - 0.45, pop(), -24))
 for w in ("خمسة", "لأسبوع"): events.append((ws(w) - 0.3, pop(), -23))
 events.append((ws("لأسبوع") + 0.45, shimmer(), -27))
 events.append((T_MSG + 0.95, pop(), -24))                                 # messenger button pops
 events.append((T_MSG + 1.25, click(), -20))                               # cursor click
-events.append((gfind("بمركز بالديرما")["s"], pop(), -25))
 events.append((T_OUT + 0.35 - WH_PEAK, WHOOSH, -21))                     # circle wipe into our outro
 events.append((T_OUT + 1.2, shimmer(), -25))
 sfx = np.zeros(N)

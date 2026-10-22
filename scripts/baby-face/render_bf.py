@@ -10,7 +10,7 @@ import numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from bf_timeline import RAW, OFF, RAW_END, WORDS, GROUPS, gfind, wfind, T_PIP_IN, T_PIP_OUT, TB, T_MSG, MSG_HOLD, T_OUT, OUTRO_LEN, DUR
+from bf_timeline import RAW, OFF, RAW_END, WORDS, GROUPS, gfind, wfind, T_PIP_IN, T_PIP_OUT, TB, T_MSG, T_MSG_OUT, MSG_HOLD, T_OUT, OUTRO_LEN, DUR
 
 SQ = "--sq" in sys.argv
 ONLY = None; RANGE = None; OUT = None
@@ -28,12 +28,12 @@ WORK = os.path.join(HERE, "..", "comp1_work"); os.makedirs(WORK, exist_ok=True)
 
 BURG = (108, 13, 43); PINK = (243, 165, 189); WHITE = (255, 255, 255); DEEP = (74, 6, 28)
 if SQ:
-    L = dict(cap=905, kw=830, face_y=470, card=(330, 245, 750, 605), title=738, sub=846, nums=605, nfs=86, sfs=58, ngap=118,
+    L = dict(cap=905, kw=830, face_y=470, card=(330, 245, 750, 605), title=708, sub=862, nums=605, nfs=86, sfs=58, ngap=118,
              chap=246, pcard=(270, 296, 810, 586), ptitle=645, pfs=54, rows=(752, 866), row_wh=(600, 96), lfs=42,
              f2card=(310, 300, 770, 660), f2t=745, f2s=850, bt=360, bars=(530, 700), bar_wh=(700, 140), bpill=860,
              p3=760, ghost=(820, 560, 640), c2t=380, c2rows=(560, 740), sc_wh=(660, 140), c3t=380, c3rows=(570, 750), ic_y=0, endpill=0, msg_dy=30, kw_msg=222, msg_fy=420, msg_z=1.0)
 else:
-    L = dict(cap=1505, kw=1385, face_y=700, card=(190, 500, 890, 1100), title=1290, sub=1418, nums=1100, nfs=112, sfs=68, ngap=150,
+    L = dict(cap=1505, kw=1385, face_y=700, card=(190, 500, 890, 1100), title=1225, sub=1430, nums=1100, nfs=112, sfs=68, ngap=150,
              chap=410, pcard=(170, 520, 910, 1060), ptitle=1150, pfs=64, rows=(1312, 1468), row_wh=(740, 132), lfs=50,
              f2card=(170, 560, 910, 1120), f2t=1235, f2s=1365, bt=720, bars=(930, 1120), bar_wh=(820, 160), bpill=1300,
              p3=1300, ghost=(820, 900, 900), c2t=660, c2rows=(1150, 1380), sc_wh=(820, 175), c3t=660, c3rows=(1150, 1370), ic_y=900, endpill=1590, msg_dy=0, kw_msg=860, msg_fy=560, msg_z=1.30)
@@ -196,7 +196,8 @@ class Photo:
                               borderMode=cv2.BORDER_REFLECT).astype(np.float32)
 
 BROLL2 = "/mnt/project-files/edits/broll/pexels-hijab6"   # new model for this video (Pexels shoot 19959608-25)
-P = dict(face=Photo(BROLL2 + "/19959613", 0.52, 0.42), look=Photo(BROLL2 + "/19959621", 0.60, 0.35))
+PRP = "/mnt/project-files/edits/broll/pexels-prp"     # Dracula (PRP) session: syringe + roller facial, blood tube inset
+P = dict(prp=Photo(PRP + "/4586713", 0.42, 0.26), tube=Photo(PRP + "/6629362", 0.75, 0.52))
 
 # ---------------- doctor ----------------
 # raw reads correctly («Dr. Musa / Palderma»), already keyed by the user onto the clinic set: light grade only
@@ -626,8 +627,16 @@ CHAP = ["الجلسة", "التوقيت", "النقاهة"]
 # --- chapter 1: the Dracula session gives the baby-face result ---
 def scene_F1(t):
     fr = motion_bg(t, 1.0, "1", TB[1]); chapter(fr, t, 0, TB[1] + 0.1)
-    yc = photo_card(fr, t, P["face"], TB[1], TB[2], zoom=0.08)
+    yc = photo_card(fr, t, P["prp"], TB[1], TB[2], zoom=0.08)
     x0, y0, x1, y1 = L["pcard"]
+    q = back_out(prog(t, ws("الدراكولا") - 0.2, 0.55), 1.4)      # round blood-tube inset on the card corner
+    if q > 0.01:
+        d = 210 if SQ else 280; img = P["tube"].cover(d, d, 1.05)
+        m = np.zeros((d, d), np.float32); cv2.circle(m, (d // 2, d // 2), d // 2 - 8, 1.0, -1, cv2.LINE_AA)
+        rgba = np.dstack([img, m * 255]).astype(np.uint8)
+        ring = np.zeros((d, d, 4), np.uint8); cv2.circle(ring, (d // 2, d // 2), d // 2 - 5, (255, 255, 255, 255), 9, cv2.LINE_AA)
+        rgba = np.array(Image.alpha_composite(Image.fromarray(rgba), Image.fromarray(ring)))
+        over(fr, shadowed(rgba, r=16, a=0.4, dy=10, cache=False), x0 + d * 0.42, yc + (y1 - y0) - d * 0.30, alpha=min(1, q * 2.5), scale=0.6 + 0.4 * q)
     sweep(fr, x0, yc, x1 - x0, y1 - y0, prog(t, ws("البيبي", 1) - 0.1, 1.1))
     sparkles(fr, t, ws("البيبي", 1), [(x1 - 50, y0 + 60), (x0 + 60, y0 + (y1 - y0) * 0.6), (x1 - 110, y1 - 50)], 80 if SQ else 100)
     rise(fr, shadowed(box_img("جلسة الدراكولا", L["pfs"] + 6, BURG, WHITE)), L["ptitle"], prog(t, ws("الدراكولا") - 0.3, 0.5))
@@ -665,9 +674,6 @@ def scene_F2(t):
         q = prog(t, ts - 0.3, 0.45)
         if q <= 0: continue
         rise(fr, season_card(ic, lab, w, h, L["lfs"] + 6, prog(t, ts + 0.35, 0.4)), y, q)
-    p = back_out(prog(t, ws("الخريف") + 0.3, 0.5))
-    if p > 0 and not SQ: over(fr, shadowed(box_img("الوقت المثالي للجلسة", 56, PINK, BURG, radius=40), r=12, a=0.35, dy=6),
-                              W / 2, L["endpill"], scale=0.85 + 0.15 * p, alpha=min(1, p * 2.5))
     return fr
 
 # --- chapter 3: recovery from five days to a week ---
@@ -791,7 +797,7 @@ def word_bounds(words, size, weight, pad=40):
 
 NFS, KFS = (58, 100) if SQ else (68, 120)
 DISP = {"أهم شي": "أهــــم شي"}
-CIRC = {"بجلسة بسيطة جداً": (1, 2), "الوقت اللي نختاره": (0, 0)}   # word span to circle inside the group
+CIRC = {"بجلسة بسيطة جداً": (1, 2)}   # word span to circle inside the group
 def draw_captions(fr, t):
     for gi, g in enumerate(GROUPS):
         if g["style"] == "-": continue
@@ -866,7 +872,9 @@ def render_frame(i, doc_src, msg_src):
         else: fr *= (1 - TOP_DARK * 0.5)
         draw_captions(fr, t)
         over(fr, FRAME, 0, 0, anchor="tl")
-        if t >= T_MSG: fr = msg_layer(fr, msg_src.get(j), j)
+        if t >= T_MSG:
+            k_out = ease_io(prog(t, T_MSG_OUT, 0.45))
+            fr = msg_layer(fr, msg_src.get(j), j) * (1 - k_out) + fr * k_out if k_out > 0 else msg_layer(fr, msg_src.get(j), j)
         if t >= T_OUT:                               # pink circle wipe into our outro (style guide)
             p = ease_io((t - T_OUT) / WIPE); R = p * math.hypot(W, H) / 2 * 1.05
             m = circle_mask(R); fr = fr * (1 - m) + OUT_SRC["p"].get(oi).astype(np.float32) * m
