@@ -564,7 +564,7 @@ def flowers(fr, t):
         fr[:] = fr * (1 - a) + np.array(DEEP, np.float32) * a
 
 def motion_bg(t, seed, num, t0):
-    fr = bg_at(t, seed); flowers(fr, t); ghost(fr, t, num, t0); return fr
+    fr = bg_at(t, seed); ghost(fr, t, num, t0); return fr
 
 def sparkles(fr, t, t0, pts, size):
     for i, (x, y) in enumerate(pts): sparkle(fr, x, y, prog(t, t0 + i * 0.12, 0.9), size)
@@ -572,7 +572,7 @@ def sparkles(fr, t, t0, pts, size):
 def pip_scene(t):
     """hook: doctor shrinks into a rounded card (face centred, headroom); «البيبي فيس» title and the
     «حلم كل صبية» pill below with twinkles; one centred column"""
-    doc = doctor(t); fr = bg_at(t); flowers(fr, t)
+    doc = doctor(t); fr = bg_at(t)
     k = ease_io(prog(t, T_PIP_IN, 0.6)) if t < T_PIP_OUT else 1 - ease_io(prog(t, T_PIP_OUT, 0.6))
     CARD = L["card"]; cw, ch = CARD[2] - CARD[0], CARD[3] - CARD[1]
     full = (0.0, 0.0, float(W), float(H))

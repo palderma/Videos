@@ -17,8 +17,8 @@ GROUPS_SPEC = [  # (words, style)
     ("جلسة الدراكولا", "-"), ("هي اللي ممكن تعطيني", "-"), ("جلسة البيبي فيس", "-"), ("اللي أنا بحتاجها", "-"),
     ("لكن بهمنا إنه تنعمل", "-"), ("بموسم الشتاء", "-"), ("أو في آخر الخريف", "-"),
     ("لأنه تحتاج", "-"), ("لفترة نقاهة", "-"), ("من خمسة أيام لأسبوع", "-"),
-    ("وللاستفسار عن هذه الجلسة", "-"), ("ممكن مراسلتنا عبر رسائل الصفحة", "-"),
-    ("وأهلاً وسهلاً فيكم", "-"), ("بمركز بالديرما", "-"),
+    ("وللاستفسار عن هذه الجلسة", "n"), ("ممكن مراسلتنا", "n"), ("عبر رسائل الصفحة", "n"),
+    ("وأهلاً وسهلاً فيكم", "n"), ("بمركز بالديرما", "-"),
 ]
 
 def build():
@@ -41,9 +41,9 @@ SPEECH_END = R(38.18)
 T_PIP_IN, T_PIP_OUT = R(2.50), R(4.95)
 #     hook doc, ch1 session, ch2 timing, ch3 recovery, doc
 TB = [0.0, R(17.05), R(22.50), R(27.70), R(31.98)]
-T_MSG = R(32.20)                            # page-messages overlay starts («وللاستفسار»)
-T_MSG_OUT = R(37.00)                        # overlay fades out as he says «بمركز بالديرما» (user, 2026-10-22)
-MSG_HOLD = (62, R(38.20))                   # overlay frame held (button clicked) until the speech ends
+T_MSG = R(36.95)                            # page-messages overlay starts on «بمركز بالديرما» (user, 2026-10-22: at 0:36, not 0:31)
+T_MSG_OUT = 999.0                           # overlay stays until the outro
+MSG_HOLD = (62, round(T_MSG + 62 / 30 + 0.05, 2))   # play the overlay to the click (raw ends right after)
 T_OUT = round(MSG_HOLD[1] + 0.1, 2)         # pink outro wipes in (user rule: never end on the Facebook page)
 OUTRO_LEN = 8.0
 DUR = round(T_OUT + OUTRO_LEN, 2)
