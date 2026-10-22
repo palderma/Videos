@@ -232,7 +232,7 @@ TX_FREE = 160 if SQ else 0         # square: the doctor may sit smaller than the
 def doc_offsets(s):
     FACE_X, FACE_Y = FACE["x"], FACE["y"]
     tx = W / 2 - s * FACE_X; tx = min(TX_FREE, max(W - s * RW - TX_FREE, tx))
-    mk = ease_io(prog(DOC["t"], T_MSG - 0.2, 0.8))
+    mk = 0.0
     ty = L["face_y"] + (L["msg_fy"] - L["face_y"]) * mk - s * FACE_Y; ty = min(0.0, max(H - s * RH, ty))
     return tx, ty
 def doc_transform(img, s):
@@ -252,18 +252,18 @@ def doc_transform(img, s):
 
 Z0 = 1.45
 T_PUNCH = ws("أهم") - 0.15
-OPEN_D, SETTLE_D, PUSH_D = (1.0, 1.3, 1.8) if SQ else (0.45, 0.7, 1.2)     # square moves slower and softer
-def settle(t, T, a=0.08): return a * (1 - (ease_io if SQ else ease_out)(prog(t, T, SETTLE_D)))
+OPEN_D, SETTLE_D, PUSH_D = (1.6, 1.6, 2.4) if SQ else (1.4, 1.6, 2.4)     # every move slow and eased in/out (user, v4)
+def settle(t, T, a=0.05): return a * (1 - ease_io(prog(t, T, SETTLE_D)))
 def zoom_v(t):
     if t < TB[1]:
         # opening glide in, slow creep while he explains, one soft push on «أهم شي» that holds
-        return (Z0 + 0.30 * (1 - (ease_io if SQ else ease_out)(t / OPEN_D)) + 0.06 * ease_io(prog(t, T_PIP_OUT + 0.6, T_PUNCH - T_PIP_OUT - 0.6))
-                + 0.10 * ease_io(prog(t, T_PUNCH - 0.25, PUSH_D)))
+        return (Z0 + 0.16 * (1 - ease_io(t / OPEN_D)) + 0.06 * ease_io(prog(t, T_PIP_OUT + 0.6, T_PUNCH - T_PIP_OUT - 0.6))
+                + 0.07 * ease_io(prog(t, T_PUNCH - 0.6, PUSH_D)))
     return Z0 + 0.06 + settle(t, TB[4])
 def zoom_at(t):
     z = zoom_v(t)
     if SQ: z = 1.12 + (z - Z0) * 0.55              # square: doctor a bit smaller, every zoom move gentler
-    k = ease_io(prog(t, T_MSG - 0.5, 1.6))          # long glide out for the messages overlay
+    k = 0.0                                         # keep the framing under the messages overlay (user, v4)
     return z * (1 - k) + L["msg_z"] * k
 DOC = {"img": None, "t": 0.0}
 def doctor(t):
@@ -836,7 +836,7 @@ def draw_captions(fr, t):
 PAGE0 = 65                                          # overlay turns into the full FB page (measured)
 HOLD_J, HOLD_T = MSG_HOLD
 def msg_index(t):
-    return min(int(round((t - T_MSG) * FPS)), HOLD_J)   # held on the clicked button; the FB page part is never shown
+    return min(int(math.floor((t - T_MSG) * FPS + 1e-6)), HOLD_J)   # held on the clicked button; the FB page part is never shown
 def Outro(start=0):
     p = Pipe(["ffmpeg", "-loglevel", "error", "-ss", f"{start / FPS:.4f}", "-i", OUTRO, "-vf", f"fps={FPS},scale={W}:{H}",
               "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], (H, W, 3))
@@ -857,12 +857,19 @@ def msg_layer(fr, m, j):
     k = ease_io(clamp((j - PAGE0 + 1) / 8))
     return fr * (1 - k) + m[..., :3].astype(np.float32) * k
 
+_recent = {}
 def render_frame(i, doc_src, msg_src):
     t = i / FPS
-    DOC["img"] = doc_src.get(min(i, int(RAW_END * FPS) - 2))
+    last = int(RAW_END * FPS) - 2
+    if i <= last:
+        DOC["img"] = doc_src.get(i); _recent[i] = DOC["img"]
+        for k in [k for k in _recent if k < i - 60]: del _recent[k]
+    else:
+        j = max(last - (i - last), min(_recent) if _recent else last)
+        DOC["img"] = _recent.get(j, doc_src.get(last))
     FACE["x"] = float(np.interp(t + OFF, FT, FX)); FACE["y"] = float(np.interp(t + OFF, FT, FY))
     j = msg_index(t)
-    oi = int(round((t - T_OUT) * FPS))
+    oi = int(math.floor((t - T_OUT) * FPS + 1e-6))
     if t >= T_OUT + WIPE:
         fr = OUT_SRC["p"].get(oi).astype(np.float32)
     else:
