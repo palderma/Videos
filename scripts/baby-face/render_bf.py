@@ -163,7 +163,7 @@ if SQ:
     BOTTOM_DARK = (np.clip((yy - 0.5) / 0.48, 0, 1) ** 1.3 * 0.78).astype(np.float32)
     TOP_DARK = (np.clip((0.25 - yy) / 0.25, 0, 1) * 0.35).astype(np.float32)
 else:
-    BOTTOM_DARK = (np.clip((yy - 0.47) / 0.45, 0, 1) ** 1.3 * 0.86).astype(np.float32)
+    BOTTOM_DARK = (np.clip((yy - 0.60) / 0.36, 0, 1) ** 1.4 * 0.72).astype(np.float32)      # v5: starts below the shoulders
     TOP_DARK = (np.clip((0.2 - yy) / 0.2, 0, 1) * 0.3).astype(np.float32)
 
 def load_bg():
@@ -201,8 +201,8 @@ P = dict(prp=Photo(PRP + "/4586713", 0.42, 0.26), tube=Photo(PRP + "/6629362", 0
 
 # ---------------- doctor ----------------
 # raw reads correctly («Dr. Musa / Palderma»), already keyed by the user onto the clinic set: light grade only
-GRADE = ("eq=contrast=1.05:saturation=1.03:gamma=0.98,"
-         "curves=all='0/0 0.08/0.06 0.5/0.49 1/0.97',unsharp=5:5:0.35")
+GRADE = ("eq=contrast=1.0:saturation=1.03:gamma=1.04,"                       # v5: shadows lifted (user: too much black)
+         "curves=all='0/0.02 0.15/0.18 0.5/0.52 1/0.98',unsharp=5:5:0.35")
 RW, RH = 1080, 1920
 class Pipe:
     def __init__(self, cmd, shape):
@@ -857,6 +857,20 @@ def msg_layer(fr, m, j):
     k = ease_io(clamp((j - PAGE0 + 1) / 8))
     return fr * (1 - k) + m[..., :3].astype(np.float32) * k
 
+_K9 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)); _K3 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+def defringe(img, fx, fy, Y0=520, Y1=1300, X0=110, X1=980):
+    """paint out the thin dark grey key outline the user's keyed comp leaves around the doctor's shoulders/neck
+    (thin dark low-saturation lines only, never the head: glasses/hair stay untouched)"""
+    roi = np.ascontiguousarray(img[Y0:Y1, X0:X1]); f = roi.astype(np.int16)
+    Lm = (0.3 * f[..., 0] + 0.59 * f[..., 1] + 0.11 * f[..., 2]).astype(np.uint8)
+    sat = f.max(-1) - f.min(-1)
+    bh = cv2.morphologyEx(Lm, cv2.MORPH_BLACKHAT, _K9)
+    yy_, xx_ = np.mgrid[Y0:Y1, X0:X1]
+    head = ((xx_ - fx) / 175.0) ** 2 + ((yy_ - fy) / 205.0) ** 2 < 1
+    m = cv2.dilate(((bh > 11) & (sat < 42) & (Lm < 140) & ~head).astype(np.uint8), _K3)
+    if not m.any(): return img
+    out = img.copy(); out[Y0:Y1, X0:X1] = cv2.inpaint(roi, m * 255, 4, cv2.INPAINT_TELEA); return out
+
 _recent = {}
 def render_frame(i, doc_src, msg_src):
     t = i / FPS
@@ -867,6 +881,7 @@ def render_frame(i, doc_src, msg_src):
     else:
         j = max(last - (i - last), min(_recent) if _recent else last)
         DOC["img"] = _recent.get(j, doc_src.get(last))
+    DOC["img"] = defringe(DOC["img"], float(np.interp(i / FPS + OFF, FT, FXF)), float(np.interp(i / FPS + OFF, FT, FYF)) - 25)
     FACE["x"] = float(np.interp(t + OFF, FT, FX)); FACE["y"] = float(np.interp(t + OFF, FT, FY))
     j = msg_index(t)
     oi = int(math.floor((t - T_OUT) * FPS + 1e-6))
