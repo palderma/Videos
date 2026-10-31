@@ -53,7 +53,7 @@ def wi(i): return WORDS[i]
 
 SPEECH_END = o(33.86)                 # 32.22
 T_MSG = ws("للاستفسار") - 0.05        # messenger button in
-MSG_HOLD = 58                         # last frame before the FB page (clicked button)
+MSG_HOLD = 45                         # last frame before the FB page (clicked button)
 T_OUTRO = T_MSG + MSG_HOLD / FPS + 0.35
 OUTRO_LEN = 4.8
 DUR = round(T_OUTRO + OUTRO_LEN, 3)
@@ -169,7 +169,7 @@ def build():
           (M3_OUT, 127), (ws("حقن") - 0.3, 129), (ws("حقن") + 0.5, 136), (o(30.6), 136), (o(30.6) + 1.6, 128), (T_OUTRO + 1, 128)]
     doc = C.add(footage("الدكتور (ملوّن + قص السكتات)", PK + "doctor_graded_cut.mp4", start=0, anchor=FACE, pos=[540, 650],
                         scale=keys(*zk, ease="io"), inp=0, outp=T_OUTRO + 1.0,
-                        blur=keys((0, 16), (0.5, 0), ease="out")))
+                        blur=keys((0, 10), (0.35, 0), ease="out")))
     # hook shake on the stamp (position keys)
     ts = ws("ضحكوا") + 0.9
     doc.pos = keys((ts - 0.01, [540, 650]), (ts + 0.04, [552, 642]), (ts + 0.08, [532, 658]), (ts + 0.12, [546, 646]), (ts + 0.17, [537, 652]), (ts + 0.24, [540, 650]), ease="soft")
@@ -177,11 +177,11 @@ def build():
 
     # ---- HOOK (frame 1): «الشد المائي» + pill «بديل الفيلر؟» then the «خرافة» stamp
     h_end = we("المائي") - 0.0 if False else ws("هذا") - 0.05
-    word_layer(C, "هوك - الشد المائـي", "الشد المائـــي", 128, "Black", WHITE, 540, 1185, 0.0, h_end, rise=26, dur=0.4, blur=20)
+    word_layer(C, "هوك - الشد المائـي", "الشد المائـــي", 128, "Black", WHITE, 540, 1185, -0.18, h_end, rise=26, dur=0.4, blur=20)
     pw = text_width("بديل الفيلر؟", 74, "Bold") + 110
     pill = C.add(rect("هوك - كبسولة زجاجية", pw, 128, 64, fill=(58, 8, 26), fill_op=62, stroke=WHITE, stroke_w=2.5, stroke_op=80, pos=[540, 1330],
-                      size=keys((0.12, [pw * 0.3, 128]), (0.55, [pw, 128]), ease="out"), op=keys((0.12, 0), (0.3, 100), (h_end - 0.18, 100), (h_end, 0)), inp=0.1, outp=h_end + 0.02, shadow=SH_CARD))
-    word_layer(C, "هوك - بديل الفيلر؟", "بديل الفيلر؟", 74, "Bold", WHITE, 540, 1356, 0.28, h_end, rise=12)
+                      size=keys((0.0, [pw * 0.45, 128]), (0.4, [pw, 128]), ease="out"), op=keys((0.0, 30), (0.15, 100), (h_end - 0.18, 100), (h_end, 0)), inp=0.0, outp=h_end + 0.02, shadow=SH_CARD))
+    word_layer(C, "هوك - بديل الفيلر؟", "بديل الفيلر؟", 74, "Bold", WHITE, 540, 1356, 0.12, h_end, rise=12)
     t_st = ts
     sw_, shh = 430, 168
     C.add(rect("هوك - ختم خرافة", sw_, shh, 34, fill=PINK, fill_op=96, stroke=WHITE, stroke_w=6, pos=[540, 985], rot=keys((t_st, -16), (t_st + 0.32, -7), ease="out"),
