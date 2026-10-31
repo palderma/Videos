@@ -37,6 +37,13 @@ g = (1 - np.clip((YS[:, :1] - 120) / 380, 0, 1)) ** 1.6 * 0.55
 sh = np.zeros((H, W, 4), np.uint8); sh[..., :3] = (22, 2, 9); sh[..., 3] = np.repeat(g * 255, W, 1).astype(np.uint8)
 Image.fromarray(sh).save(f"{O}/shade_top.png")
 
+# one soft light (replaces the flowers, v2)
+L = 1100; yy, xx = np.mgrid[0:L, 0:L].astype(np.float32) + 0.5
+d = np.hypot(xx - L / 2, yy - L / 2) / (L / 2)
+al = np.clip(1 - d, 0, 1) ** 2.2 * 0.55
+lt = np.zeros((L, L, 4), np.uint8); lt[..., :3] = (255, 226, 236); lt[..., 3] = (al * 255).astype(np.uint8)
+Image.fromarray(lt).save(f"{O}/soft_light.png")
+
 # icons
 ICON_DIRS = ["/mnt/project-files/edits/scl_work/icons", "/mnt/project-files/edits/hl2_work/icons"]
 def icon(name, size, col, out, stroke=1.8):

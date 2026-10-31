@@ -13,7 +13,7 @@ SH_TXT = dict(color=DEEP, op=150, dist=4, soft=26, dir=180)
 SH_CARD = dict(color=DEEP, op=90, dist=10, soft=40, dir=180)
 
 # ---------------------------------------------------------------- time map (raw -> edit)
-KEEP = [(1.0, 7.18), (7.40, 14.12), (14.33, 21.85), (22.06, 34.65)]
+KEEP = [(1.0, 14.12), (14.33, 34.65)]      # v2: only one cut, hidden under the flash
 def o(r):
     acc = 0.0
     for a, b in KEEP:
@@ -59,19 +59,19 @@ OUTRO_LEN = 4.8
 DUR = round(T_OUTRO + OUTRO_LEN, 3)
 
 # scene times (edit time)
-M1_IN, M1_OUT = CUTS[0] - 0.42, CUTS[1]          # messages scene; flash peak at the cut
-M3_IN, M3_OUT = CUTS[2] - 0.42, o(25.82)          # «نسمي الأشياء بمسمياتها»; flash back to the doctor
+M1_IN, M1_OUT = o(6.95), CUTS[0]          # messages scene; flash peak at the cut
+M3_IN, M3_OUT = o(21.62), o(25.82)          # «نسمي الأشياء بمسمياتها»; flash back to the doctor
 FLASH_PEAK = 15 / FPS
 
 # ---------------------------------------------------------------- helpers
-def kin(t0, d=0.3, a=0.0, b=100.0, ease="out"): return keys((t0, a), (t0 + d, b), ease=ease)
-def word_layer(c, name, txt, size, weight, col, x, y, t0, t1, rise=22, blur=14, dur=0.26, fade=0.16, shadow=SH_TXT, scale_pop=False):
+def kin(t0, d=0.3, a=0.0, b=100.0, ease="smooth"): return keys((t0, a), (t0 + d, b), ease=ease)
+def word_layer(c, name, txt, size, weight, col, x, y, t0, t1, rise=14, blur=10, dur=0.45, fade=0.28, shadow=SH_TXT, scale_pop=False):
     """word: blur + rise + fade in at t0, fade out at t1"""
     L = text(name, txt, size, weight, col, inp=t0 - 0.02, outp=t1 + 0.02, shadow=shadow)
-    L.pos = keys((t0, [x, y + rise]), (t0 + dur, [x, y]), ease="out")
-    L.op = keys((t0, 0), (t0 + dur * 0.7, 100), (t1 - fade, 100), (t1, 0))
-    L.blur = keys((t0, blur), (t0 + dur, 0), ease="out")
-    if scale_pop: L.scale = keys((t0, 70), (t0 + dur, 106), (t0 + dur + 0.14, 100))
+    L.pos = keys((t0, [x, y + rise]), (t0 + dur, [x, y]), ease="smooth")
+    L.op = keys((t0, 0), (t0 + dur * 0.8, 100), (t1 - fade, 100), (t1, 0), ease="soft")
+    L.blur = keys((t0, blur), (t0 + dur, 0), ease="smooth")
+    if scale_pop: L.scale = keys((t0, 88), (t0 + dur + 0.1, 100), ease="smooth")
     return c.add(L)
 
 def line_layout(words, size, weight, gap=0.26):
@@ -92,11 +92,10 @@ def caption(c, label, items, y, t_end, size=68, gapk=0.26):
 
 # ---------------------------------------------------------------- motion background (precomp)
 def motion_bg(c, dur, grid=False):
-    c.add(image("خلفية وردي-عنابي", PK + "bg_pink_wine.png", pos=[540, 960]))
-    # the user's 6-petal flower in wine: slow rotation + breathing (linear keys = constant speed)
-    for nm, (px, py), r0, sp in (("وردة عنابي - فوق يمين", (1110, -30), 12, 7), ("وردة عنابي - تحت يسار", (-30, 1950), 40, -6)):
-        L = c.add(image(nm, PK + "flower_wine.png", pos=keys((0, [px, py]), (dur, [px - 14, py + 10]), ease="lin"),
-                        rot=keys((0, r0), (dur, r0 + sp * dur / 4), ease="lin"), scale=keys((0, 88), (dur / 2, 92), (dur, 88), ease="soft"), op=58))
+    # clean pink -> wine gradient (no flowers, user 2026-10-31) with a very slow push + one soft drifting light
+    c.add(image("خلفية وردي-عنابي", PK + "bg_pink_wine.png", pos=[540, 960], scale=keys((0, 100), (dur, 105), ease="lin")))
+    c.add(image("ضو ناعم", PK + "soft_light.png", pos=keys((0, [700, 640]), (dur, [420, 820]), ease="lin"), op=55,
+                scale=keys((0, 100), (dur, 115), ease="lin")))
 
 # ---------------------------------------------------------------- M1: «كثير مسجات بتوصلنا»
 def build_M1():
@@ -115,24 +114,28 @@ def build_M1():
     # messages icon in a white circle + pink badge «+99»
     t0 = t(ws("مسجات")) - 0.05
     circ = c.add(ellipse("دائرة بيضاء - أيقونة المسجات", 210, fill=CREAM, stroke=PINK, stroke_w=5, pos=[540, 1000], shadow=SH_CARD,
-                         scale=keys((t0, 40), (t0 + 0.32, 106), (t0 + 0.5, 100)), op=kin(t0, 0.18), inp=t0))
-    c.add(image("أيقونة المسجات", PK + "icon_messages.png", pos=[540, 1000], scale=keys((t0 + 0.08, 50), (t0 + 0.45, 100), ease="out"), op=kin(t0 + 0.08, 0.2), inp=t0))
+                         scale=keys((t0, 70), (t0 + 0.6, 100), ease="smooth"), op=kin(t0, 0.4, ease="soft"), inp=t0))
+    c.add(image("أيقونة المسجات", PK + "icon_messages.png", pos=[540, 1000], scale=keys((t0 + 0.1, 75), (t0 + 0.65, 100), ease="smooth"), op=kin(t0 + 0.1, 0.4, ease="soft"), inp=t0))
     tb = t(ws("بتوصلنا"))
     c.add(ellipse("شارة وردية", 92, fill=(0xE8, 0x3E, 0x8C), stroke=WHITE, stroke_w=4, pos=[628, 928],
-                  scale=keys((tb, 0), (tb + 0.25, 118), (tb + 0.4, 100)), inp=tb))
-    c.add(text("رقم الشارة +99", "+99", 40, "Bold", WHITE, pos=[628, 942], scale=keys((tb + 0.05, 0), (tb + 0.3, 115), (tb + 0.45, 100)), inp=tb))
+                  scale=keys((tb, 40), (tb + 0.5, 100), ease="smooth"), op=kin(tb, 0.3, ease="soft"), inp=tb))
+    c.add(text("رقم الشارة +99", "+99", 40, "Bold", WHITE, pos=[628, 942], scale=keys((tb + 0.05, 40), (tb + 0.55, 100), ease="smooth"), op=kin(tb + 0.05, 0.3, ease="soft"), inp=tb))
+    # soft glass chat panel behind the bubbles (v2)
+    tpn = t(ws("دكتور")) - 0.55
+    c.add(rect("لوح زجاجي للشات", 940, 560, 52, fill=WHITE, fill_op=10, stroke=WHITE, stroke_w=2, stroke_op=35, pos=keys((tpn, [540, 1395]), (tpn + 0.7, [540, 1365]), ease="smooth"),
+               op=kin(tpn, 0.6, ease="soft"), inp=tpn))
     # chat bubbles (right / left / right like a real chat)
     bubbles = [("دكتور، شو فوائد الشد المائي؟", ws("دكتور"), 1, 1200), ("تكلفة الشد المائي؟", ws("تكلفة"), -1, 1365), ("كيف بصير الشد المائي؟", ws("كيف"), 1, 1530)]
     for i, (txt, tw, side, y) in enumerate(bubbles):
         tw = t(tw) - 0.12
         wdt = text_width(txt, 54, "Bold") + 104; hgt = 120
-        x = 540 + side * (490 - wdt / 2) * 0.75
-        L = c.add(rect(f"فقاعة {i+1}", wdt, hgt, 60, fill=CREAM, fill_op=96, stroke=PINK, stroke_w=3, pos=keys((tw, [x + side * 40, y + 26]), (tw + 0.38, [x, y]), ease="out"),
-                       scale=keys((tw, 55), (tw + 0.3, 104), (tw + 0.46, 100)), op=kin(tw, 0.16), shadow=SH_CARD, inp=tw))
-        c.add(text(f"فقاعة {i+1} - نص", txt, 54, "Bold", BURG, pos=keys((tw + 0.06, [x + side * 40, y + 19 + 26]), (tw + 0.44, [x, y + 19]), ease="out"),
-                   op=kin(tw + 0.08, 0.22), blur=keys((tw + 0.06, 8), (tw + 0.36, 0), ease="out"), inp=tw))
-        c.add(image(f"فقاعة {i+1} - علامة سؤال", PK + "icon_question.png", pos=keys((tw + 0.06, [x + side * (wdt / 2 - 2) + side * 40, y - 46 + 26]), (tw + 0.44, [x + side * (wdt / 2 - 2), y - 46]), ease="out"),
-                    scale=keys((tw + 0.12, 0), (tw + 0.4, 112), (tw + 0.52, 100)), inp=tw))
+        x = 540 + side * (470 - wdt / 2) * 0.5
+        L = c.add(rect(f"فقاعة {i+1}", wdt, hgt, 60, fill=CREAM, fill_op=96, stroke=PINK, stroke_w=3, pos=keys((tw, [x + side * 24, y + 18]), (tw + 0.6, [x, y]), ease="smooth"),
+                       scale=keys((tw, 82), (tw + 0.6, 100), ease="smooth"), op=kin(tw, 0.35, ease="soft"), shadow=SH_CARD, inp=tw))
+        c.add(text(f"فقاعة {i+1} - نص", txt, 54, "Bold", BURG, pos=keys((tw + 0.06, [x + side * 24, y + 19 + 18]), (tw + 0.66, [x, y + 19]), ease="smooth"),
+                   op=kin(tw + 0.1, 0.4, ease="soft"), blur=keys((tw + 0.06, 8), (tw + 0.5, 0), ease="smooth"), inp=tw))
+        c.add(image(f"فقاعة {i+1} - علامة سؤال", PK + "icon_question.png", pos=keys((tw + 0.06, [x + side * (wdt / 2 - 2) + side * 24, y - 46 + 18]), (tw + 0.66, [x + side * (wdt / 2 - 2), y - 46]), ease="smooth"),
+                    scale=keys((tw + 0.15, 50), (tw + 0.6, 100), ease="smooth"), op=kin(tw + 0.15, 0.3, ease="soft"), inp=tw))
     return c
 
 # ---------------------------------------------------------------- M3: «في مركز بالديرما نسمّي الأشياء بمسمّياتها»
@@ -142,37 +145,37 @@ def build_M3():
     motion_bg(c, d)
     t = lambda x: x - M3_IN; end = d
     t0 = 0.25
-    c.add(image("لوجو بالديرما", PK + "logo_white.png", pos=keys((t0, [540, 690]), (t0 + 0.6, [540, 660]), ease="out"),
-                scale=keys((t0, 56), (t0 + 0.6, 60), ease="out"), op=kin(t0, 0.45), blur=keys((t0, 24), (t0 + 0.55, 0), ease="out")))
+    c.add(image("لوجو بالديرما", PK + "logo_white.png", pos=keys((t0, [540, 690]), (t0 + 0.6, [540, 660]), ease="smooth"),
+                scale=keys((t0, 56), (t0 + 0.6, 60), ease="smooth"), op=kin(t0, 0.45), blur=keys((t0, 24), (t0 + 0.55, 0), ease="smooth")))
     xs, _ = line_layout(["في", "مركز", "بالديرما"], 62, "Medium")
     for w_, x in zip(["في", "مركز", "بالديرما"], xs):
         word_layer(c, "سطر - " + w_, w_, 62, "Medium", WHITE, x, 960, max(0.35, t(ws(w_))), end)
     word_layer(c, "عنوان - نسمّي الأشياء", "نسمّي الأشياء", 108, "Black", WHITE, 540, 1110, t(ws("نسمي")), end, rise=28, dur=0.38, blur=20)
     tp = t(ws("بمسمياتها")) - 0.12; pw = text_width("بمسمّياتهـــا", 132, "Black") + 150
     c.add(rect("كبسولة عنابي زجاج", pw, 210, 105, fill=(0x4A, 0x05, 0x1E), fill_op=72, stroke=PINK, stroke_w=3, stroke_op=90, pos=[540, 1270],
-               size=keys((tp, [pw * 0.3, 210]), (tp + 0.42, [pw, 210]), ease="out"), op=kin(tp, 0.16), shadow=SH_CARD, inp=tp))
+               size=keys((tp, [pw * 0.6, 210]), (tp + 0.65, [pw, 210]), ease="smooth"), op=kin(tp, 0.4, ease="soft"), shadow=SH_CARD, inp=tp))
     word_layer(c, "عنوان - بمسمّياتهـا (وردي)", "بمسمّياتهـــا", 132, "Black", PINK, 540, 1312, t(ws("بمسمياتها")), end, rise=24, dur=0.42, blur=24, scale_pop=True)
     return c
 
 # ---------------------------------------------------------------- main comp
 def build():
     C = Comp("الشد المائي خرافة - ريلز 9x16", W, H, DUR, FPS, bg=DEEP)
-    C.markers += [(CUTS[0], "قص صوت (مخفي تحت الموشن)"), (CUTS[1], "قص صوت (مخفي تحت الفلاش)"), (CUTS[2], "قص صوت (مخفي تحت الموشن)")]
+    C.markers += [(CUTS[0], "قص سكتة (مخفي تحت الفلاش)")]
     # ---- doctor: one graded clip, framing + soft zooms by keyframes (anchor = his face)
     FACE = [0, 612 - 960]
     Z = 125
-    zk = [(0.0, 142), (0.75, Z),                                           # hook: blur + zoom-out open
-          (ws("ضحكوا") + 0.9, Z), (ws("ضحكوا") + 1.1, 131), (2.6, 129),     # tiny punch with the «خرافة» stamp
-          (M1_IN, 130), (M1_IN + 0.5, 138),                                 # push into the motion scene
-          (CUTS[1], 128), (o(16.5), 131),                                   # back: slow breathe
-          (ws("فيك") - 0.25, 131), (ws("فيك") + 0.45, 140), (M3_IN, 140), (M3_IN + 0.5, 146),
-          (M3_OUT, 127), (ws("حقن") - 0.3, 129), (ws("حقن") + 0.5, 136), (o(30.6), 136), (o(30.6) + 1.6, 128), (T_OUTRO + 1, 128)]
+    # v2: slow continuous pushes only (one per doctor part); every reset happens while a motion scene / flash covers him
+    zk = [(0.0, 136), (1.6, 124),                       # gentle open
+          (M1_IN + 0.75, 129),                          # slow push to the first scene
+          (M1_OUT - 0.25, 125), (M3_IN + 0.75, 132),    # part 2: slow push
+          (M3_OUT - 0.25, 125), (o(30.6), 130),         # part 3
+          (T_OUTRO + 1.0, 133)]                         # ending
     doc = C.add(footage("الدكتور (ملوّن + قص السكتات)", PK + "doctor_graded_cut.mp4", start=0, anchor=FACE, pos=[540, 650],
-                        scale=keys(*zk, ease="io"), inp=0, outp=T_OUTRO + 1.0,
-                        blur=keys((0, 10), (0.35, 0), ease="out")))
+                        scale=keys(*zk, ease="soft"), inp=0, outp=T_OUTRO + 1.0,
+                        blur=keys((0, 10), (0.6, 0), ease="smooth")))
     # hook shake on the stamp (position keys)
     ts = ws("ضحكوا") + 0.9
-    doc.pos = keys((ts - 0.01, [540, 650]), (ts + 0.04, [552, 642]), (ts + 0.08, [532, 658]), (ts + 0.12, [546, 646]), (ts + 0.17, [537, 652]), (ts + 0.24, [540, 650]), ease="soft")
+    # (v2: no shake on the stamp)
     C.add(image("تظليل تحت (للكابشن)", PK + "shade_bottom.png", pos=[540, 960], op=keys((0, 100), (T_OUTRO, 100), (T_OUTRO + 0.4, 0)), outp=T_OUTRO + 0.5))
 
     # ---- HOOK (frame 1): «الشد المائي» + pill «بديل الفيلر؟» then the «خرافة» stamp
@@ -180,16 +183,16 @@ def build():
     word_layer(C, "هوك - الشد المائـي", "الشد المائـــي", 128, "Black", WHITE, 540, 1185, -0.18, h_end, rise=26, dur=0.4, blur=20)
     pw = text_width("بديل الفيلر؟", 74, "Bold") + 110
     pill = C.add(rect("هوك - كبسولة زجاجية", pw, 128, 64, fill=(58, 8, 26), fill_op=62, stroke=WHITE, stroke_w=2.5, stroke_op=80, pos=[540, 1330],
-                      size=keys((0.0, [pw * 0.45, 128]), (0.4, [pw, 128]), ease="out"), op=keys((0.0, 30), (0.15, 100), (h_end - 0.18, 100), (h_end, 0)), inp=0.0, outp=h_end + 0.02, shadow=SH_CARD))
+                      size=keys((0.0, [pw * 0.6, 128]), (0.6, [pw, 128]), ease="smooth"), op=keys((0.0, 30), (0.3, 100), (h_end - 0.3, 100), (h_end, 0), ease="soft"), inp=0.0, outp=h_end + 0.02, shadow=SH_CARD))
     word_layer(C, "هوك - بديل الفيلر؟", "بديل الفيلر؟", 74, "Bold", WHITE, 540, 1356, 0.12, h_end, rise=12)
     t_st = ts
     sw_, shh = 430, 168
-    C.add(rect("هوك - ختم خرافة", sw_, shh, 34, fill=PINK, fill_op=96, stroke=WHITE, stroke_w=6, pos=[540, 985], rot=keys((t_st, -16), (t_st + 0.32, -7), ease="out"),
-               scale=keys((t_st, 240), (t_st + 0.2, 93), (t_st + 0.34, 100)), op=keys((t_st, 0), (t_st + 0.08, 100), (h_end - 0.18, 100), (h_end, 0)),
-               blur=keys((t_st, 22), (t_st + 0.18, 0), ease="out"), shadow=dict(color=DEEP, op=150, dist=12, soft=40, dir=180), inp=t_st, outp=h_end + 0.02))
-    C.add(text("هوك - خرافة (نص الختم)", "خرافة", 112, "Black", BURG, pos=[540, 985], rot=keys((t_st, -16), (t_st + 0.32, -7), ease="out"),
-               anchor=[0, -36], scale=keys((t_st, 240), (t_st + 0.2, 93), (t_st + 0.34, 100)), op=keys((t_st, 0), (t_st + 0.08, 100), (h_end - 0.18, 100), (h_end, 0)),
-               blur=keys((t_st, 22), (t_st + 0.18, 0), ease="out"), inp=t_st, outp=h_end + 0.02))
+    C.add(rect("هوك - ختم خرافة", sw_, shh, 34, fill=PINK, fill_op=96, stroke=WHITE, stroke_w=6, pos=[540, 985], rot=keys((t_st, -11), (t_st + 0.6, -6), ease="smooth"),
+               scale=keys((t_st, 150), (t_st + 0.6, 100), ease="smooth"), op=keys((t_st, 0), (t_st + 0.25, 100), (h_end - 0.3, 100), (h_end, 0)),
+               blur=keys((t_st, 16), (t_st + 0.45, 0), ease="smooth"), shadow=dict(color=DEEP, op=150, dist=12, soft=40, dir=180), inp=t_st, outp=h_end + 0.02))
+    C.add(text("هوك - خرافة (نص الختم)", "خرافة", 112, "Black", BURG, pos=[540, 985], rot=keys((t_st, -11), (t_st + 0.6, -6), ease="smooth"),
+               anchor=[0, -36], scale=keys((t_st, 150), (t_st + 0.6, 100), ease="smooth"), op=keys((t_st, 0), (t_st + 0.25, 100), (h_end - 0.3, 100), (h_end, 0)),
+               blur=keys((t_st, 16), (t_st + 0.45, 0), ease="smooth"), inp=t_st, outp=h_end + 0.02))
 
     # ---- captions (doctor parts) ; keyword = pink
     CY = 1330
@@ -210,7 +213,7 @@ def build():
     # equation card: «الشد المائي = فيلر»
     te0 = ws("الشد", 4) - 0.12; te1 = ws("الاسم") - 0.02
     cw = 860; C.add(rect("بطاقة المعادلة - زجاج", cw, 190, 48, fill=(58, 8, 26), fill_op=60, stroke=WHITE, stroke_w=2.5, stroke_op=75, pos=[540, CY - 22],
-                         size=keys((te0, [cw * 0.35, 190]), (te0 + 0.4, [cw, 190]), ease="out"), op=keys((te0, 0), (te0 + 0.15, 100), (te1 - 0.2, 100), (te1, 0)),
+                         size=keys((te0, [cw * 0.6, 190]), (te0 + 0.65, [cw, 190]), ease="smooth"), op=keys((te0, 0), (te0 + 0.35, 100), (te1 - 0.3, 100), (te1, 0), ease="soft"),
                          shadow=SH_CARD, inp=te0, outp=te1 + 0.02))
     eq = [("الشد المائي", ws("الشد", 4), WHITE, 76), ("=", ws("هو", 0), PINK, 92), ("فيلر", ws("الفيلر", 1), PINK, 96)]
     wl = [text_width(a, sz, "Black" if a != "الشد المائي" else "Bold") for a, _, _, sz in eq]; gp = 46
@@ -232,10 +235,10 @@ def build():
     tc0 = ws("حقن") - 0.14; tc1 = ws("ولا") - 0.02
     cw2 = 800
     C.add(rect("بطاقة حقن فيلر - زجاج", cw2, 200, 100, fill=(58, 8, 26), fill_op=60, stroke=PINK, stroke_w=3, stroke_op=90, pos=[540, CY - 30],
-               size=keys((tc0, [cw2 * 0.3, 200]), (tc0 + 0.4, [cw2, 200]), ease="out"), op=keys((tc0, 0), (tc0 + 0.15, 100), (tc1 - 0.2, 100), (tc1, 0)),
+               size=keys((tc0, [cw2 * 0.6, 200]), (tc0 + 0.65, [cw2, 200]), ease="smooth"), op=keys((tc0, 0), (tc0 + 0.35, 100), (tc1 - 0.3, 100), (tc1, 0), ease="soft"),
                shadow=SH_CARD, inp=tc0, outp=tc1 + 0.02))
-    C.add(image("بطاقة حقن فيلر - أيقونة", PK + "icon_syringe_white.png", pos=[540 + 312, CY - 30], scale=keys((tc0 + 0.2, 0), (tc0 + 0.48, 112), (tc0 + 0.6, 100)),
-                op=keys((tc1 - 0.2, 100), (tc1, 0)), inp=tc0, outp=tc1 + 0.02))
+    C.add(image("بطاقة حقن فيلر - أيقونة", PK + "icon_syringe_white.png", pos=[540 + 312, CY - 30], scale=keys((tc0 + 0.2, 60), (tc0 + 0.7, 100), ease="smooth"),
+                op=keys((tc0 + 0.2, 0), (tc0 + 0.5, 100), (tc1 - 0.25, 100), (tc1, 0), ease="soft"), inp=tc0, outp=tc1 + 0.02))
     word_layer(C, "حقن فيلـــر (وردي)", "حقن فيلـــر", 104, "Black", PINK, 540 - 34, CY + 6, ws("حقن"), tc1, rise=20, dur=0.36, blur=18)
     word_layer(C, "ليس إلا", "ليس إلا", 62, "Bold", WHITE, 540, CY + 150, ws("ليس"), tc1)
     g3 = [
@@ -248,8 +251,8 @@ def build():
     # ---- motion scenes (precomps): soft entry = opacity + scale + blur ; exit under the user's flash
     for comp_, tin, tout, nm in ((build_M1(), M1_IN, M1_OUT, "مشهد 1 - كثير مسجات"), (build_M3(), M3_IN, M3_OUT, "مشهد 2 - بمسمياتها")):
         C.add(precomp(nm, comp_, start=tin, inp=tin, outp=tout + 0.12,
-                      op=keys((tin, 0), (tin + 0.36, 100), (tout - 0.1, 100), (tout + 0.1, 0)),
-                      scale=keys((tin, 112), (tin + 0.5, 100), ease="out"), blur=keys((tin, 36), (tin + 0.45, 0), ease="out")))
+                      op=keys((tin, 0), (tin + 0.7, 100), (tout - 0.12, 100), (tout + 0.12, 0), ease="soft"),
+                      scale=keys((tin, 106), (tin + 1.0, 100), ease="smooth"), blur=keys((tin, 30), (tin + 0.75, 0), ease="smooth")))
         C.markers.append((tin, "دخول " + nm + " (ووش)"))
     # user's flash transition back to the doctor (full cover at its frame 15)
     for tp in (M1_OUT, M3_OUT):
@@ -262,8 +265,8 @@ def build():
                   remap=[K(T_MSG, 0.0, lin=True), K(T_MSG + MSG_HOLD / FPS, MSG_HOLD / FPS, lin=True), K(T_OUTRO + 0.5, MSG_HOLD / FPS, lin=True)],
                   op=keys((T_OUTRO, 100), (T_OUTRO + 0.3, 0))))
     C.add(footage("خاتمة بالديرما الوردية", PK + "palderma_pink_outro.mp4", start=T_OUTRO, inp=T_OUTRO, outp=DUR,
-                  op=keys((T_OUTRO, 0), (T_OUTRO + 0.45, 100)), scale=keys((T_OUTRO, 108), (T_OUTRO + 0.7, 100), ease="out"),
-                  blur=keys((T_OUTRO, 20), (T_OUTRO + 0.45, 0), ease="out")))
+                  op=keys((T_OUTRO, 0), (T_OUTRO + 0.7, 100), ease="soft"), scale=keys((T_OUTRO, 104), (T_OUTRO + 1.0, 100), ease="smooth"),
+                  blur=keys((T_OUTRO, 20), (T_OUTRO + 0.45, 0), ease="smooth")))
     C.markers.append((T_MSG, "زر المراسلة"))
     C.markers.append((T_OUTRO, "الخاتمة الوردية"))
     return C

@@ -25,7 +25,7 @@ class K:
 def keys(*seq, **kw):
     """keys((t, v), (t, v, in, out), ...) ; kw ease='io'|'out'|'in'|'lin'"""
     ease = kw.get("ease", "io")
-    pre = {"io": (75, 75), "out": (12, 88), "in": (88, 12), "soft": (60, 60), "lin": (33, 33)}[ease]
+    pre = {"smooth": (85, 35), "io": (75, 75), "out": (12, 88), "in": (88, 12), "soft": (60, 60), "lin": (33, 33)}[ease]
     out = []
     for s in seq:
         if isinstance(s, K): out.append(s); continue
@@ -34,6 +34,7 @@ def keys(*seq, **kw):
         # for 'out' ease the incoming influence belongs to the 2nd key and outgoing to the 1st key
         if ease == "out": i, o = (88, 12)
         if ease == "in": i, o = (12, 88)
+        if ease == "smooth": i, o = (85, 35)
         out.append(K(t, v, i, o, lin=(ease == "lin")))
     return out
 
