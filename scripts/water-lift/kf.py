@@ -396,16 +396,28 @@ function textL(comp, txt, font, size, col) {
 }
 function textAnchor(L, dx, dy) { TR(L, "ADBE Anchor Point").expression = "var r = sourceRectAtTime(time, false); [r.left + r.width / 2 + (" + dx + "), " + dy + "];"; }
 function shapeL(comp, kind, size, radius, fill, fillOp, stroke, strokeW, strokeOp) {
-  var L = comp.layers.addShape(); var g = L.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
-  var v = g.property("ADBE Vectors Group");
-  var s = v.addProperty(kind == "rect" ? "ADBE Vector Shape - Rect" : "ADBE Vector Shape - Ellipse");
-  var r = {size: s.property(kind == "rect" ? "ADBE Vector Rect Size" : "ADBE Vector Ellipse Size"), round: kind == "rect" ? s.property("ADBE Vector Rect Roundness") : null};
-  if (stroke) { var st = v.addProperty("ADBE Vector Graphic - Stroke"); st.property("ADBE Vector Stroke Color").setValue(stroke);
-    r.sw = st.property("ADBE Vector Stroke Width"); r.sop = st.property("ADBE Vector Stroke Opacity"); }
-  if (fill) { var fl = v.addProperty("ADBE Vector Graphic - Fill"); fl.property("ADBE Vector Fill Color").setValue(fill); r.fop = fl.property("ADBE Vector Fill Opacity"); }
+  // add every vector property FIRST, then always re-fetch by match name (adding a property invalidates older references)
+  var L = comp.layers.addShape(); L.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
+  function V() { return L.property("ADBE Root Vectors Group").property(1).property("ADBE Vectors Group"); }
+  V().addProperty(kind == "rect" ? "ADBE Vector Shape - Rect" : "ADBE Vector Shape - Ellipse");
+  if (stroke) V().addProperty("ADBE Vector Graphic - Stroke");
+  if (fill) V().addProperty("ADBE Vector Graphic - Fill");
+  function S() { return V().property(1); }
+  function ST() { return V().property("ADBE Vector Graphic - Stroke"); }
+  function FL() { return V().property("ADBE Vector Graphic - Fill"); }
+  if (stroke) ST().property("ADBE Vector Stroke Color").setValue(stroke);
+  if (fill) FL().property("ADBE Vector Fill Color").setValue(fill);
+  var r = {
+    size: function () { return S().property(kind == "rect" ? "ADBE Vector Rect Size" : "ADBE Vector Ellipse Size"); },
+    round: function () { return S().property("ADBE Vector Rect Roundness"); },
+    sw: function () { return ST().property("ADBE Vector Stroke Width"); },
+    sop: function () { return ST().property("ADBE Vector Stroke Opacity"); },
+    fop: function () { return FL().property("ADBE Vector Fill Opacity"); }
+  };
   TR(L, "ADBE Anchor Point").setValue([0, 0]);
   return [L, r];
 }
+var ERRS = [];
 ''')
     names = {}
     for ci, c in enumerate(comps):
@@ -414,8 +426,10 @@ function shapeL(comp, kind, size, radius, fill, fillOp, stroke, strokeW, strokeO
             cv, _js(c.name), c.w, c.h, _js(round(c.dur, 4)), c.fps, cv, "top" if c is main else "fComp", cv, _js(_col(c.bg))))
         for t, txt in c.markers:
             w("try { var mk = new MarkerValue(%s); %s.markerProperty.setValueAtTime(%s, mk); } catch (e) {}\n" % (_js(txt), cv, _js(round(t, 3))))
-        for L in c.layers: _jsx_layer(w, L, c, cv, names, footage_map)
-    w("app.endUndoGroup();\n%s.openInViewer();\nalert(%s);\n})();\n" % (names[id(main)], _js("تمام! انبنى مشروع «" + title + "» بكل الطبقات والكيفريمات.")))
+        for L in c.layers:
+            w("try {\n"); _jsx_layer(w, L, c, cv, names, footage_map)
+            w("} catch (err) { ERRS.push(%s + ': ' + err.toString() + ' (line ' + err.line + ')'); }\n" % _js(c.name + " / " + L.name))
+    w("app.endUndoGroup();\n%s.openInViewer();\nif (ERRS.length) alert('انبنى المشروع، بس في طبقات ما زبطت (ابعت صورة عن هالرسالة):\\n' + ERRS.slice(0, 15).join('\\n')); else alert(%s);\n})();\n" % (names[id(main)], _js("تمام! انبنى مشروع «" + title + "» بكل الطبقات والكيفريمات.")))
     open(out_path, "w", encoding="utf-8-sig").write("".join(lines))
 
 def _kjs(p, conv=lambda v: v):
@@ -433,11 +447,11 @@ def _jsx_layer(w, L, c, cv, names, fmap):
     elif k in ("rect", "ellipse"):
         w("var SR = shapeL(%s, %s, [10,10], 0, %s, 100, %s, 1, 100); var L = SR[0];\n" % (
             cv, _js(k), _js(_col(L.kw["fill"])) if L.kw.get("fill") is not None else "null", _js(_col(L.kw["stroke"])) if L.kw.get("stroke") else "null"))
-        w("setK(SR[1].size, %s, 2, false);\n" % _js(_kjs(L.kw["size"])))
-        if k == "rect": w("setK(SR[1].round, %s, 1, false);\n" % _js(_kjs(L.kw["radius"])))
-        if L.kw.get("fill") is not None: w("setK(SR[1].fop, %s, 1, false);\n" % _js(_kjs(L.kw.get("fill_op", 100))))
+        w("setK(SR[1].size(), %s, 2, false);\n" % _js(_kjs(L.kw["size"])))
+        if k == "rect": w("setK(SR[1].round(), %s, 1, false);\n" % _js(_kjs(L.kw["radius"])))
+        if L.kw.get("fill") is not None: w("setK(SR[1].fop(), %s, 1, false);\n" % _js(_kjs(L.kw.get("fill_op", 100))))
         if L.kw.get("stroke"):
-            w("setK(SR[1].sw, %s, 1, false); setK(SR[1].sop, %s, 1, false);\n" % (_js(_kjs(L.kw["stroke_w"])), _js(_kjs(L.kw.get("stroke_op", 100)))))
+            w("setK(SR[1].sw(), %s, 1, false); setK(SR[1].sop(), %s, 1, false);\n" % (_js(_kjs(L.kw["stroke_w"])), _js(_kjs(L.kw.get("stroke_op", 100)))))
     elif k in ("image", "footage", "audio"):
         rel = fmap[L.kw["path"]]
         w("var L = %s.layers.add(imp(%s));\n" % (cv, _js(rel)))
