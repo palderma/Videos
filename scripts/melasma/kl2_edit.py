@@ -9,7 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kf import *
 from kl_edit import KEEP, CUTS, T, SRC, o
 
-PK = "/home/user/klf/pkg2/footage/"
+import os as _os
+PK = _os.environ.get("KL_PKG", "/home/user/klf/pkg2") + "/footage/"
 W, H, FPS = 1080, 1920, 30
 BURG = (0x6C, 0x0D, 0x2B); PINK = (0xF3, 0xA5, 0xBD); WHITE = (255, 255, 255); DEEP = (40, 3, 15); CREAM = (255, 247, 250)
 OUTRO_PINK = (234, 153, 188); GLASS = (58, 8, 26)
@@ -155,15 +156,22 @@ def build_M2():
 
 # ---------------------------------------------------------------- main comp
 def build():
-    C = Comp("أسباب فشل علاج الكلف - ريلز 9x16 v2", W, H, DUR, FPS, bg=DEEP)
+    C = Comp("أسباب فشل علاج الكلف - ريلز 9x16 v3", W, H, DUR, FPS, bg=DEEP)
     for i, tc in enumerate(CUTS): C.markers.append((tc, f"قص سكتة {i + 1}"))
     # doctor: close framing like the references (face ≈ upper third), slow continuous push per part, resets hidden by scenes/flash
     FACE = [510 - 540, 640 - 960]
-    zk = [K(0.0, 140), K(0.6, 128), K(CUTS[0] - 1 / FPS, 131, hold=True), K(CUTS[0], 124), K(M1_IN + 0.7, 128, hold=True),
+    # v3: no zoom reset at the first cut (user: the 2 s transition must be very soft) -> one continuous glide
+    zk = [K(0.0, 140), K(0.6, 128), K(M1_IN + 0.7, 133, hold=True),
           K(M1_OUT, 124), K(CUTS[5] + 0.7, 128, hold=True), K(M2_OUT, 124), K(T_OUTRO + 0.1, 130)]
     for k in zk: k.i, k.o = 60, 60
     C.add(footage("الدكتور (ملوّن + قص السكتات فقط)", PK + "doctor_graded_cut.mp4", start=0, anchor=FACE, pos=[540, 700],
-                  scale=zk, inp=0, outp=T_OUTRO + 0.1, blur=keys((0, 10), (0.5, 0), ease="smooth")))
+                  scale=zk, inp=0, outp=T_OUTRO + 0.1,
+                  blur=keys((0, 10), (0.5, 0), (CUTS[0] - 0.15, 0), (CUTS[0] + 0.08, 6), (CUTS[0] + 0.45, 0), ease="smooth")))
+    # v3: the first silence cut (≈2.2 s) dissolves softly: last frame before the cut held on top and faded out
+    C.add(footage("الدكتور - ذوبان ناعم عند القص الأول", PK + "doctor_graded_cut.mp4", start=0, anchor=FACE, pos=[540, 700], scale=zk,
+                  remap=[K(0.0, 0.0, lin=True), K(CUTS[0] - 1 / FPS, CUTS[0] - 1 / FPS, lin=True), K(CUTS[0] + 0.6, CUTS[0] - 1 / FPS, lin=True)],
+                  op=keys((CUTS[0] - 0.02, 100), (CUTS[0] + 0.35, 0), ease="soft"), inp=0, outp=CUTS[0] + 0.38,
+                  blur=keys((0, 10), (0.5, 0), (CUTS[0] - 0.15, 0), (CUTS[0] + 0.1, 7), (CUTS[0] + 0.35, 7), ease="smooth")))
     C.add(image("تظليل تحت (للكابشن)", PK + "shade_bottom.png", pos=[540, 960], op=keys((0, 100), (T_OUTRO, 100), (T_OUTRO + 0.3, 0)), outp=T_OUTRO + 0.35))
 
     # ---- HOOK from frame 1: «الكلـــف» + glass pill «ما بيروح بالكريم»
@@ -203,7 +211,7 @@ def build():
         C.markers.append((tp, "فلاش رجوع للدكتور"))
 
     # ---- brand frame (every frame until the outro), messenger -> pink circle -> outro + WhatsApp
-    C.add(image("تظليل فوق (للوجو)", PK + "shade_top.png", pos=[540, 960], op=keys((T_WIPE, 100), (T_WIPE + 0.3, 0)), outp=T_WIPE + 0.35))
+    # v3: top dark shade removed (user)
     C.add(image("قالب الهوية (الإطار)", PK + "frame_template_9x16.png", pos=[540, 960], op=keys((T_WIPE, 100), (T_WIPE + 0.3, 0)), outp=T_WIPE + 0.35))
     C.add(footage("زر مراسلة الصفحة (ثابت على الضغطة)", PK + "messenger_button.mov", seq="/home/user/klf/msg", start=T_MSG, inp=T_MSG, outp=T_OUTRO + 0.05,
                   remap=[K(T_MSG, 0.0, lin=True), K(T_CLICK, MSG_CLICK / FPS, lin=True), K(T_OUTRO + 0.05, MSG_CLICK / FPS, lin=True)]))
@@ -211,9 +219,8 @@ def build():
                   inp=T_WIPE, outp=T_OUTRO + 0.4))
     C.add(footage("خاتمة بالديرما الوردية", PK + "palderma_pink_outro.mp4", start=T_OUTRO - 0.05, inp=T_OUTRO - 0.05, outp=DUR,
                   op=keys((T_OUTRO - 0.05, 0), (T_OUTRO + 0.25, 100), ease="soft")))
-    ta = T_OUTRO + 2.2
-    C.add(footage("زر واتساب +972598219030", PK + "whatsapp_pill.mov", seq="/home/user/klf/wa", start=ta, inp=ta, outp=DUR, pos=[540, 960 + 190]))
-    C.markers += [(T_MSG, "زر المراسلة"), (T_WIPE, "دائرة وردية"), (T_OUTRO, "الخاتمة الوردية"), (ta, "واتساب")]
+    # v3: WhatsApp line + number removed from the outro (user)
+    C.markers += [(T_MSG, "زر المراسلة"), (T_WIPE, "دائرة وردية"), (T_OUTRO, "الخاتمة الوردية")]
     return C
 
 if __name__ == "__main__":
