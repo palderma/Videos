@@ -16,5 +16,5 @@ fmap = {}
 for root, _, files in os.walk(PKG):
     for f in files:
         p = os.path.join(root, f); fmap[p] = os.path.relpath(p, PKG).replace(os.sep, "/")
-export_jsx(C, PKG + "/build_project.jsx", "أسباب فشل علاج الكلف v5", fmap)
+export_jsx(C, PKG + "/build_project.jsx", "أسباب فشل علاج الكلف v6", fmap)
 print("jsx ok", os.path.getsize(PKG + "/build_project.jsx"), "layers", len(C.layers))

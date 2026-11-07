@@ -42,7 +42,7 @@ x = np.tanh((np.sin(2 * np.pi * (48 + 60 * np.exp(-tt * 14)) * tt) * np.exp(-tt 
 imp = np.stack([x, x], 1).astype(np.float32)
 tp = np.arange(int(0.09 * SR)) / SR; y = np.sin(2 * np.pi * (900 + 600 * np.exp(-tp * 40)) * tp) * np.exp(-tp * 38); pop = np.stack([y, y], 1).astype(np.float32)
 db = lambda d: 10 ** (d / 20); vg = vr * 0.9
-put(imp, E.HT["thalath"] - 0.06, vg * db(-7))
+put(imp, E.HT["mish"] - 0.02, vg * db(-6))
 put(wh, E.H - 0.31, vg * db(-10))
 for nm, xx in (("voice_doctor", voice), ("music_bed", mus), ("sfx", sfx)): sf.write(A + nm + ".wav", xx, SR)
 sf.write("/home/user/klf/mix_pre4.wav", voice + mus + sfx, SR)
