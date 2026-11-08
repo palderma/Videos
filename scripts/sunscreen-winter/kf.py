@@ -310,8 +310,24 @@ def layer_image(L, t, comp):
     raise ValueError(k)
 
 def draw_layer(dst, L, t, comp, alpha_dst=False):
-    if not L.enabled or L.guide or L.kind == "audio": return
+    """track matte support: L.kw['matte'] = a Layer (not added to the comp), L.kw['matte_mode'] = 'alpha' | 'luma'"""
+    MT = L.kw.get("matte") if L.kind != "audio" else None
+    if MT is None: return _draw_layer(dst, L, t, comp, alpha_dst)
+    if not L.enabled or L.guide: return
     if t < L.inp - 1e-6 or (L.outp is not None and t >= L.outp - 1e-6): return
+    if val(L.op, t) <= 0.2: return
+    buf = np.zeros((comp.h, comp.w, 4), np.float32); _draw_layer(buf, L, t, comp, True)
+    mb = np.zeros((comp.h, comp.w, 4), np.float32); _draw_layer(mb, MT, t, comp, True, ignore_time=True)
+    m = mb[..., 3] / 255 if L.kw.get("matte_mode", "alpha") == "alpha" else np.clip(mb[..., :3].mean(-1) / 255, 0, 1)
+    buf *= m[..., None]
+    a = buf[..., 3:4] / 255
+    if alpha_dst: dst *= (1 - a); dst += buf
+    else: dst *= (1 - a); dst += buf[..., :3]
+
+def _draw_layer(dst, L, t, comp, alpha_dst=False, ignore_time=False):
+    if not L.enabled and not ignore_time: return
+    if L.guide or L.kind == "audio": return
+    if not ignore_time and (t < L.inp - 1e-6 or (L.outp is not None and t >= L.outp - 1e-6)): return
     op = val(L.op, t) / 100
     if op <= 0.002: return
     img, ax, ay = layer_image(L, t, comp)
@@ -349,8 +365,9 @@ def export_jsx(main, out_path, title, footage_map, extra_comps=()):
     comps = []; seen = set()
     def collect(c):
         for L in c.layers:
-            if L.kind == "precomp" and id(L.kw["comp"]) not in seen:
-                collect(L.kw["comp"])
+            for X in (L, L.kw.get("matte")):
+                if X is not None and X.kind == "precomp" and id(X.kw["comp"]) not in seen:
+                    collect(X.kw["comp"])
         if id(c) not in seen: seen.add(id(c)); comps.append(c)
     for c in extra_comps: collect(c)
     collect(main)
@@ -428,6 +445,11 @@ var ERRS = [];
             w("try { var mk = new MarkerValue(%s); %s.markerProperty.setValueAtTime(%s, mk); } catch (e) {}\n" % (_js(txt), cv, _js(round(t, 3))))
         for L in c.layers:
             w("try {\n"); _jsx_layer(w, L, c, cv, names, footage_map)
+            MT = L.kw.get("matte")
+            if MT is not None:
+                w("var ML = L;\n"); _jsx_layer(w, MT, c, cv, names, footage_map)
+                tm = "ALPHA" if L.kw.get("matte_mode", "alpha") == "alpha" else "LUMA"
+                w("var MT = L; try { ML.setTrackMatte(MT, TrackMatteType.%s); } catch (e) { ML.trackMatteType = TrackMatteType.%s; }\nL = ML;\n" % (tm, tm))
             w("} catch (err) { ERRS.push(%s + ': ' + err.toString() + ' (line ' + err.line + ')'); }\n" % _js(c.name + " / " + L.name))
     w("app.endUndoGroup();\n%s.openInViewer();\nif (ERRS.length) alert('انبنى المشروع، بس في طبقات ما زبطت (ابعت صورة عن هالرسالة):\\n' + ERRS.slice(0, 15).join('\\n')); else alert(%s);\n})();\n" % (names[id(main)], _js("تمام! انبنى مشروع «" + title + "» بكل الطبقات والكيفريمات.")))
     open(out_path, "w", encoding="utf-8-sig").write("".join(lines))
