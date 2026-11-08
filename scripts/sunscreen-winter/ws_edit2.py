@@ -40,7 +40,7 @@ def card_pos(k, s=CS):
 def scene_windows():
     out = []
     for k, (tin, tout) in ((1, (M1_IN, M1_OUT)), (2, (M2_IN, M2_OUT))):
-        a0 = tin - IN_LEAD; a1 = a0 + MORPH
+        a0 = {1: o(6.70), 2: o(22.25)}[k]; a1 = a0 + MORPH
         b0 = {1: o(14.85), 2: o(32.55)}[k]            # card opens only after his last word of the scene («باستمرار» / «الصيف»)
         b1 = b0 + MORPH
         out.append((k, a0, a1, b0, b1))
@@ -88,11 +88,11 @@ def bg_comp(k, d):
             c.add(ellipse(f"بوكيه {i + 1}", sz, fill=(255, 228, 236), pos=keys((0, [x, y0]), (d, [x + rnd.uniform(-40, 40), y0 - sp * d]), ease="lin"),
                           op=keys((0, 0), (0.8, rnd.uniform(18, 38)), (d - 0.5, rnd.uniform(18, 38)), (d, 0), ease="soft")))
     else:               # slow snowfall
-        for i in range(16):
-            x = rnd.uniform(50, 1030); y0 = rnd.uniform(-200, 1700); sp = rnd.uniform(35, 75); s_ = rnd.uniform(55, 120)
+        for i in range(10):
+            x = rnd.choice([rnd.uniform(40, 230), rnd.uniform(850, 1040)]); y0 = rnd.uniform(-200, 1700); sp = rnd.uniform(35, 75); s_ = rnd.uniform(55, 120)
             c.add(image(f"ثلجة {i + 1}", PK + "icon_snowflake_white.png", pos=keys((0, [x, y0]), (d, [x + rnd.uniform(-60, 60), y0 + sp * d]), ease="lin"),
                         scale=s_, rot=keys((0, 0), (d, rnd.uniform(-90, 90)), ease="lin"),
-                        op=keys((0, 0), (0.8, rnd.uniform(16, 32)), (d - 0.5, rnd.uniform(16, 32)), (d, 0), ease="soft")))
+                        op=keys((0, 0), (0.8, rnd.uniform(12, 22)), (d - 0.5, rnd.uniform(12, 22)), (d, 0), ease="soft")))
     return c
 
 # ---------------------------------------------------------------- scene texts (above the card)
@@ -135,33 +135,30 @@ def txt_M2(d, t):
     # part 2: «لأنه أحيانًا بفصل الشتاء بتكون UVA و UVB أعلى بكثير من فصل الصيف»
     word_layer(c, "أحيانًا بفصل الشتاء", "أحيانًا بفصل الشتاء", 66, "Bold", WHITE, 540, 1128, tl - 0.2, ta, rise=22, dur=0.7)
     word_layer(c, "أعلى بكثير (وردي)", "أعلى بكثيـــر", 108, "Black", PINK, 540, 1140, ta, end, rise=26, blur=16, dur=0.75, scale_pop=True)
-    PC, PH, PW = 1452, 476, 760
-    c.add(rect("لوحة المقارنة - زجاج", PW, PH, 52, fill=GLASS, fill_op=55, stroke=WHITE, stroke_w=2.5, stroke_op=70, pos=[540, PC], shadow=SH_CARD,
-               size=keys((tl - 0.2, [PW * 0.92, PH * 0.75]), (tl + 0.7, [PW, PH]), ease="smooth"), op=fio(tl - 0.2, end, 0.5, 0.4), inp=tl - 0.22))
-    tu = tl + 0.45
-    word_layer(c, "عنوان اللوحة UVA · UVB", "UVA  ·  UVB", 54, "Black", WHITE, 540, 1292, tu, end, rise=14, dur=0.7)
-    c.add(rect("خط تحت العنوان", 420, 3, 1.5, fill=WHITE, fill_op=35, pos=[540, 1322], size=keys((tu + 0.2, [0, 3]), (tu + 1.0, [420, 3]), ease="smooth"),
-               op=fio(tu + 0.2, end, 0.3, 0.4), inp=tu))
-    base = 1592; bw = 190
-    for nm, x, col, fop, ic, h1, h2, dl in (("الشتاء", 540 + 150, PINK, 96, "icon_snowflake_white.png", 125, 230, 0.15),
-                                             ("الصيف", 540 - 150, CREAM, 72, "icon_sun_white.png", 120, 120, 0.35)):
-        tg = tl + 0.6 + dl
+    # v3: clean, airy comparison (no box, no underline) that ends well above the brand frame's bottom row
+    tu = tl - 0.1
+    pw = text_width("UVA  ·  UVB", 50, "Black") + 110
+    glass_pill(c, "كبسولة UVA · UVB", pw, 96, 1262, tu, end, stroke=WHITE)
+    word_layer(c, "عنوان UVA · UVB", "UVA  ·  UVB", 50, "Black", WHITE, 540, 1280, tu + 0.08, end, rise=10, dur=0.7)
+    base = 1545; bw = 168
+    for nm, x, col, fop, ic, h1, h2, dl in (("الشتاء", 540 + 135, PINK, 96, "icon_snowflake_white.png", 95, 200, 0.15),
+                                             ("الصيف", 540 - 135, CREAM, 75, "icon_sun_white.png", 95, 95, 0.35)):
+        tg = tl + 0.5 + dl
         hk_ = [(tg, 6), (tg + 1.0, h1)] + ([(ta - 0.1, h1), (ta + 0.9, h2)] if h2 != h1 else [])
-        c.add(rect(f"عمود {nm}", bw, 6, 28, fill=col, fill_op=fop, pos=keys(*[(tt, [x, base - hh / 2]) for tt, hh in hk_], ease="io"),
+        c.add(rect(f"عمود {nm}", bw, 6, 26, fill=col, fill_op=fop, pos=keys(*[(tt, [x, base - hh / 2]) for tt, hh in hk_], ease="io"),
                    size=keys(*[(tt, [bw, hh]) for tt, hh in hk_], ease="io"), shadow=SH_CARD, op=fio(tg, end, 0.3, 0.4), inp=tg - 0.02))
-        lw = text_width(nm, 54, "Bold"); gx = 34
-        word_layer(c, f"عنوان {nm}", nm, 54, "Bold", WHITE, x + gx / 2 + 6, base + 62, tg + 0.1, end, rise=12)
-        c.add(image(f"أيقونة {nm}", PK + ic, pos=[x - lw / 2 - gx / 2 + 6, base + 44], scale=82, op=fio(tg + 0.15, end, 0.4, 0.4), inp=tg))
-    # «أعلى» arrow chip over the winter bar
-    c.add(ellipse("شارة أعلى - دائرة", 66, fill=CREAM, stroke=PINK, stroke_w=4, pos=[540 + 150, base - 230 + 48], shadow=SH_CARD,
+        lw = text_width(nm, 50, "Bold"); gx = 32
+        word_layer(c, f"عنوان {nm}", nm, 50, "Bold", WHITE, x + gx / 2 + 6, base + 60, tg + 0.1, end, rise=12)
+        c.add(image(f"أيقونة {nm}", PK + ic, pos=[x - lw / 2 - gx / 2 + 6, base + 43], scale=78, op=fio(tg + 0.15, end, 0.4, 0.4), inp=tg))
+    c.add(ellipse("شارة أعلى - دائرة", 60, fill=CREAM, stroke=PINK, stroke_w=4, pos=[540 + 135, base - 200 + 44], shadow=SH_CARD,
                   scale=keys((ta + 0.9, 50), (ta + 1.5, 100), ease="smooth"), op=fio(ta + 0.9, end, 0.35, 0.4), inp=ta + 0.88))
-    c.add(image("شارة أعلى - سهم", PK + "icon_chevrons_up.png", pos=[540 + 150, base - 230 + 48], scale=keys((ta + 0.95, 50), (ta + 1.55, 100), ease="smooth"),
+    c.add(image("شارة أعلى - سهم", PK + "icon_chevrons_up.png", pos=[540 + 135, base - 200 + 44], scale=keys((ta + 0.95, 50), (ta + 1.55, 92), ease="smooth"),
                op=fio(ta + 0.95, end, 0.35, 0.4), inp=ta + 0.93))
     return c
 
 # ---------------------------------------------------------------- body
 def build():
-    C = Comp("ضرورة واقي الشمس بالشتاء - الجسم v2", W, H, DUR, FPS, bg=DEEP)
+    C = Comp("ضرورة واقي الشمس بالشتاء - الجسم v3", W, H, DUR, FPS, bg=DEEP)
     for i, tc in enumerate(CUTS): C.markers.append((tc, f"قص سكتة {i + 1} (ذوبان 6 فريم)"))
     sc, ps, msz, mps, mr, csz, cps = doctor_keys()
     # scene backgrounds (under the doctor)
@@ -245,24 +242,24 @@ def build():
 # ---------------------------------------------------------------- hook + main
 XD = 0.55                                            # hook -> body soft blur dissolve
 def build_main():
-    C = Comp("ضرورة واقي الشمس بالشتاء - ريلز 9x16 v2", W, H, TOTAL, FPS, bg=DEEP)
+    C = Comp("ضرورة واقي الشمس بالشتاء - ريلز 9x16 v3", W, H, TOTAL, FPS, bg=DEEP)
     zk = keys((0, 131), (HK + 0.2, 135.5), ease="lin")
     remap = [K(0, SRC0, lin=True), K(VOICE_END, SRC0 + VOICE_END, lin=True), K(HK + 0.3, SRC0 + VOICE_END, lin=True)]
-    C.add(footage("هوك - الدكتور (صيفًا وشتاءً)", DOC, start=-SRC0, anchor=FACE, pos=[540, 700], scale=zk, remap=remap, inp=0, outp=HK + 0.3))
+    C.add(footage("هوك - الدكتور (صيفًا وشتاءً)", DOC, start=-SRC0, anchor=FACE, pos=[540, 800], scale=zk, remap=remap, inp=0, outp=HK + 0.3))
     # giant title BEHIND his head (person matte on top) -> depth
     t_ = text("هوك - واقي الشمس (ورا الراس)", "واقي الشمس", 158, "Black", WHITE, inp=0, outp=HK + 0.3, shadow=dict(color=DEEP, op=90, dist=6, soft=40, dir=180))
-    t_.pos = keys((0, [540, 450]), (0.9, [540, 412]), (HK + 0.3, [540, 402]), ease="smooth")
+    t_.pos = keys((0, [540, 600]), (0.9, [540, 572]), (HK + 0.3, [540, 565]), ease="smooth")
     t_.scale = keys((0, 90), (0.9, 100), (HK + 0.3, 103), ease="smooth")
     t_.op = keys((0, 0), (0.45, 100), ease="soft"); t_.blur = keys((0, 18), (0.6, 0), ease="smooth")
     C.add(t_)
     C.add(precomp("هوك - الدكتور مقصوص (قدام العنوان)", person_comp("هوك - الدكتور مقصوص (RVM)", remap=remap, start=-SRC0, dur=HK + 0.3),
-                  start=0, anchor=FACE, pos=[540, 700], scale=zk, inp=0, outp=HK + 0.3))
+                  start=0, anchor=FACE, pos=[540, 800], scale=zk, inp=0, outp=HK + 0.3))
     C.add(image("هوك - تظليل تحت", PK + "shade_bottom.png", pos=[540, 960], outp=HK + 0.3))
-    word_layer(C, "هوك - يجب استخدامه", "يجب استخدامه", 76, "Bold", WHITE, 540, 1405, hk(R["yajib"]) - 0.04, HK + 0.25, rise=22, dur=0.7)
-    tm = hk(R["sayfan"]) - 0.15; pw2 = text_width("صيفًا وشتاءً", 112, "Black") + 150
-    C.add(rect("هوك - كبسولة عنابي زجاج", pw2, 190, 95, fill=WINE_GLASS, fill_op=72, stroke=PINK, stroke_w=3, stroke_op=90, pos=[540, 1548],
-               size=keys((tm, [pw2 * 0.6, 190]), (tm + 0.7, [pw2, 190]), ease="smooth"), op=fio(tm, HK + 0.25, 0.4, 0.3), shadow=SH_CARD, inp=tm, outp=HK + 0.3))
-    word_layer(C, "هوك - صيفًا وشتاءً (وردي)", "صيفًا وشتاءً", 112, "Black", PINK, 540, 1586, hk(R["sayfan"]) - 0.04, HK + 0.25, rise=18, dur=0.65, blur=18, scale_pop=True)
+    word_layer(C, "هوك - يجب استخدامه", "يجب استخدامه", 76, "Bold", WHITE, 540, 1468, hk(R["yajib"]) - 0.04, HK + 0.25, rise=22, dur=0.7)
+    tm = hk(R["sayfan"]) - 0.15; pw2 = text_width("صيفًا وشتاءً", 104, "Black") + 140
+    C.add(rect("هوك - كبسولة عنابي زجاج", pw2, 172, 86, fill=WINE_GLASS, fill_op=72, stroke=PINK, stroke_w=3, stroke_op=90, pos=[540, 1590],
+               size=keys((tm, [pw2 * 0.6, 172]), (tm + 0.7, [pw2, 172]), ease="smooth"), op=fio(tm, HK + 0.25, 0.4, 0.3), shadow=SH_CARD, inp=tm, outp=HK + 0.3))
+    word_layer(C, "هوك - صيفًا وشتاءً (وردي)", "صيفًا وشتاءً", 104, "Black", PINK, 540, 1625, hk(R["sayfan"]) - 0.04, HK + 0.25, rise=18, dur=0.65, blur=18, scale_pop=True)
     C.add(image("هوك - قالب الهوية", PK + "frame_template_9x16.png", pos=[540, 960], outp=HK + 0.3))
     # body fades in over the held hook frame with a soft blur (no flash)
     C.add(precomp("الفيديو (الجسم)", build(), start=HK, inp=HK - XD / 2, outp=TOTAL,

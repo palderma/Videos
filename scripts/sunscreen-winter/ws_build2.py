@@ -24,5 +24,5 @@ for p in sorted(used):
     sub = "audio" if p.startswith(A) else "footage"
     shutil.copy(p, os.path.join(OUT, sub, os.path.basename(p))); fmap[p] = sub + "/" + os.path.basename(p)
 for f in os.listdir("/home/user/Videos/brand/fonts"): shutil.copy("/home/user/Videos/brand/fonts/" + f, os.path.join(OUT, "fonts"))
-export_jsx(C, os.path.join(OUT, "build_project.jsx"), "ضرورة واقي الشمس بالشتاء v2", fmap)
+export_jsx(C, os.path.join(OUT, "build_project.jsx"), "ضرورة واقي الشمس بالشتاء v3", fmap)
 print("jsx ok", len(used), "files")

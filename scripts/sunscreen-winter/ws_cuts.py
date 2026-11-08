@@ -1,7 +1,8 @@
 """cut list for «ضرورة واقي الشمس بالشتاء»: only long pauses removed; every join is a 6-frame soft cross-dissolve"""
 SRC = "/mnt/project-files/ضرورة واقي الشمس بالشتاء.mp4"
 FPS = 30; XF = 6                                     # crossfade frames at each join
-KEEP_F = [(32, 204), (216, 253), (263, 411), (419, 448), (460, 602), (619, 670), (682, 810), (818, 1011), (1024, 1216), (1223, 1331)]
+# v3: no cut inside a card glide or the hook (pauses kept there so the doctor never "jumps")
+KEEP_F = [(32, 253), (263, 411), (419, 602), (619, 810), (818, 1216), (1223, 1331)]
 KEEP = [(a / FPS, b / FPS) for a, b in KEEP_F]
 STARTS = []; _acc = 0
 for k, (a, b) in enumerate(KEEP_F):
