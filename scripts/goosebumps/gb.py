@@ -19,7 +19,7 @@ from kf import K, val
 
 W, H, FPS = 1080, 1920, 30
 CAM = 1800.0                    # AE camera zoom (px)
-VLEN = 14.6
+VLEN = 17.0
 BRAND = "/home/user/Videos/brand"
 WINE = (108, 13, 43); PINK = (243, 165, 189); WHITE = (255, 255, 255)
 TILE = (80, 8, 31)              # deep wine card
@@ -270,9 +270,9 @@ def build():
     tp.shade = bp.shade = True
     sfx(1.84, "whoosh", 0.8)
     # ================= scene 2: «مستحيل» -> «شائعة» (7 strips, RTL wave) =================
-    FW, FH = 940, 330
-    Face("مستحيل", FW, FH, "مستحيل", 220, "Bold", PALE)
-    Face("شائعة", FW, FH, "شائعة", 220, "Bold", INK, fill=PINK, stroke=mix(PINK, WHITE, 0.35))
+    FW, FH = 940, 290
+    Face("مستحيل تروح", FW, FH, "مستحيل تروح", 146, "Bold", PALE)
+    Face("هاي شائعة", FW, FH, "هاي شائعة", 146, "Bold", INK, fill=PINK, stroke=mix(PINK, WHITE, 0.35))
     ShadowFace("ظل كبير", FW, FH)
     n2 = null("مفتاح - المشهد 2", [k(2.2, [540, 960, -40], 40, 30), k(2.6, [540, 960, 0], 60, 70)])
     add(piece("ظل - المشهد 2", "ظل كبير", pos=[0, 18, 0], parent=n2, op=[k(2.25, 0), k(2.55, 100), k(5.3, 100), k(5.6, 0)], shade=False, inp=2.2, outp=5.7))
@@ -284,18 +284,18 @@ def build():
         x0 = col * sw7 + (-0.5 if col > 0 else 0); x1 = (col + 1) * sw7 - (-0.5 if col < 6 else 0)
         cxs = (x0 + x1) / 2
         rx = [k(2.22, -90, 70, 10), k(2.5, 0, 30, 70), k(2.57, -6, 50, 50), k(2.66, 0, 60, 70)]
-        bp = Piece("دخول مستحيل ↓ ش%d" % (s + 1), "مستحيل", (x0, FH / 2 - 0.5, x1, FH), (cxs, FH / 2), [cxs - FW / 2, 0, 0], rx=rx, parent=n2, inp=2.22, outp=2.67)
-        tpp = Piece("دخول مستحيل ↑ ش%d" % (s + 1), "مستحيل", (x0, 0, x1, FH / 2 + 0.5), (cxs, FH / 2), [cxs - FW / 2, 0, 0], rx=list(rx), parent=n2, inp=2.22, outp=2.67)
+        bp = Piece("دخول مستحيل ↓ ش%d" % (s + 1), "مستحيل تروح", (x0, FH / 2 - 0.5, x1, FH), (cxs, FH / 2), [cxs - FW / 2, 0, 0], rx=rx, parent=n2, inp=2.22, outp=2.67)
+        tpp = Piece("دخول مستحيل ↑ ش%d" % (s + 1), "مستحيل تروح", (x0, 0, x1, FH / 2 + 0.5), (cxs, FH / 2), [cxs - FW / 2, 0, 0], rx=list(rx), parent=n2, inp=2.22, outp=2.67)
         add(bp); PIECES.append(bp); add(tpp); PIECES.append(tpp)
     # the dropping big flap reads as a top half falling: show top statics from 2.22 (under the receding «غلط»)
     sfx(2.5, "click", 1.15); sfx(2.5, "thump", 0.8)
     T["s2_flip"] = 3.55
-    fin2 = flap_tile(n2, ["مستحيل", "شائعة"], T["s2_flip"], strips=7, delay=0.065, flip=0.5, gap=-1, tag="م2", start_in=2.66, bounce=7.0)
+    fin2 = flap_tile(n2, ["مستحيل تروح", "هاي شائعة"], T["s2_flip"], strips=7, delay=0.065, flip=0.5, gap=-1, tag="م2", start_in=2.66, bounce=7.0)
     sfx(T["s2_flip"] - 0.05, "whoosh_soft", 0.45)
     fold_out(fin2, 5.2, delay=0.035, dur=0.34, drop=50)
     sfx(5.25, "whoosh", 0.6)
     # ================= scene 3: «خطير» -> «غالبًا» | «عادي» (Y turn + split + redistribution) =================
-    Face("خطير", 920, 300, "خطير", 215, "Bold", PALE)
+    Face("خطيرة", 920, 300, "خطيرة", 205, "Bold", PALE)
     Face("غالبًا", 410, 270, "غالبًا", 175, "Bold", WHITE)
     Face("عادي", 490, 270, "عادي", 175, "Bold", INK, fill=PINK, stroke=mix(PINK, WHITE, 0.35))
     ShadowFace("ظل خطير", 920, 300); ShadowFace("ظل غالبا", 410, 270); ShadowFace("ظل عادي", 490, 270)
@@ -309,7 +309,7 @@ def build():
         x0 = col * sw6 + (-0.5 if col > 0 else 0); x1 = (col + 1) * sw6 - (-0.5 if col < 5 else 0); cxs = (x0 + x1) / 2
         a = t_in + s * 0.0625; b = a + 0.34
         for half, (cy0, cy1) in (("↑", (0, 150 + 0.5)), ("↓", (150 - 0.5, 300))):
-            p = add(piece("خطير %s ش%d" % (half, s + 1), "خطير", (x0, cy0, x1, cy1), (cxs, 150),
+            p = add(piece("خطيرة %s ش%d" % (half, s + 1), "خطيرة", (x0, cy0, x1, cy1), (cxs, 150),
                           [k(a, [cxs - 460, -60, 0], 70, 15), k(b, [cxs - 460, 0, 0], 80, 70)],
                           rx=[k(a, -90, 70, 15), k(b, 0, 45, 70), k(b + 0.07, 5, 50, 50), k(b + 0.15, 0, 60, 70)],
                           op=[k(a, 0), k(a + 0.12, 100)], parent=n3, inp=a, outp=6.9 + 0.32))
@@ -361,9 +361,9 @@ def build():
     sfx(8.28, "whoosh_soft", 0.5)
     # ================= scene 4: «ما إله حل» -> «له خيارات» / «بعد الفحص» =================
     th4 = 230; sz4 = 165
-    specs = [("ما", "له", 250), ("إله", "خيارات", 520), ("حل", "بعد", 320)]
+    specs = [("ما", "إلها", 250), ("إلها", "خيارات", 520), ("حل", "بعد", 320)]
     for a_, b_, w_ in specs:
-        Face("4 " + a_, w_, th4, a_, sz4, "Bold", PALE)
+        Face("4غ " + a_, w_, th4, a_, sz4, "Bold", PALE)
         Face("4 فاضي " + b_, w_, th4, None)
         if b_ == "خيارات":
             Face("4 " + b_, w_, th4, b_, sz4, "Bold", INK, fill=PINK, stroke=mix(PINK, WHITE, 0.35))
@@ -375,7 +375,7 @@ def build():
     ws = [250 * so, 520 * so, 320 * so]; tot = sum(ws) + 2 * gp; x = 540 + tot / 2; old = []
     for w_ in ws: old.append(x - w_ / 2); x -= w_ + gp
     R1, R2 = 830, 1090
-    new = {"له": (540 + 395 - 125, R1), "خيارات": (540 - 395 + 260, R1), "بعد": (540 + 465 - 160, R2), "الفحص": (540 - 465 + 295, R2)}
+    new = {"إلها": (540 + 395 - 125, R1), "خيارات": (540 - 395 + 260, R1), "بعد": (540 + 465 - 160, R2), "الفحص": (540 - 465 + 295, R2)}
     t4 = 8.55; tT = 9.85
     T["s4_flip"] = tT
     finals4 = [None] * 3
@@ -392,7 +392,7 @@ def build():
                   scale=[k(tm, 100 * so, 70, 40), k(tm + 0.72, 100, 75, 70)],
                   op=[k(ea, 0), k(ea + 0.3, 100)])
         add(piece("ظل4 - " + b_, "ظل4 " + b_, pos=[0, 16, 0], parent=nl, op=[k(ea + 0.2, 0), k(ea + 0.55, 100), k(tm - 0.1, 100), k(tm + 0.1, 25), k(tm + 0.6, 25), k(tm + 0.85, 100)], shade=False, inp=ea))
-        fin = flap_tile(nl, ["4 " + a_, "4 فاضي " + b_, "4 " + b_], tm - 0.05, strips=1, cascade=[0.3, 0.42], tag="م4", start_in=ea, bounce=6.5)
+        fin = flap_tile(nl, ["4غ " + a_, "4 فاضي " + b_, "4 " + b_], tm - 0.05, strips=1, cascade=[0.3, 0.42], tag="م4", start_in=ea, bounce=6.5)
         finals4[i] = (nl, fin)
         sfx(ea, "air", 0.4)
     # the new tile «الفحص» swings down from behind its top edge
@@ -422,19 +422,36 @@ def build():
         if isinstance(p, Piece) and p.parent is nlf and p.face == "4 الفحص":
             p.rx = p.rx + [k(tX + 0.2, 0, 70, 45), k(tX + 0.62, 80, 25, 70)]
     sfx(tX, "whoosh", 0.7)
+    # call to action (script): «ابعتوه لحدا بيخبي ذراعه بالأكمام» - same tilt-rise as the title (bookends)
+    Face("د ابعتوه", 420, 200, "ابعتوه", 124, "Bold", PINK, fill=None, hl=False, base=100 + 124 * 0.26)
+    Face("د لحدا", 300, 200, "لحدا", 124, "Bold", WHITE, fill=None, hl=False, base=100 + 124 * 0.26)
+    Face("د بيخبي", 1000, 200, "بيخبي ذراعه بالأكمام", 104, "Bold", WHITE, fill=None, hl=False, base=100 + 104 * 0.26)
+    wa, wl, gg = kf.text_width("ابعتوه", 124, "Bold"), kf.text_width("لحدا", 124, "Bold"), 36
+    Lw = wa + gg + wl; xr = 540 + Lw / 2
+    cta = [("د ابعتوه", xr - wa / 2, 880, 12.45), ("د لحدا", xr - wa - gg - wl / 2, 880, 12.58), ("د بيخبي", 540, 1040, 12.8)]
+    tC = 14.5
+    for i, (fn, x, y, a) in enumerate(cta):
+        add(piece("دعوة - " + FACES[fn].txt, fn, pos=[k(a, [x, y + 70, 0], 70, 15), k(a + 0.62, [x, y, 0], 85, 70),
+                                                       k(tC + i * 0.05, [x, y, 0], 70, 60), k(tC + 0.34 + i * 0.05, [x, y - 80, -120], 25, 70)],
+                  rx=[k(a, 62, 70, 15), k(a + 0.62, 0, 85, 70), k(tC + i * 0.05, 0, 70, 60), k(tC + 0.34 + i * 0.05, -50, 25, 70)],
+                  op=[k(a, 0, 70, 30), k(a + 0.35, 100, 70, 70), k(tC + 0.08 + i * 0.05, 100), k(tC + 0.34 + i * 0.05, 0)],
+                  blur=[k(a, 18, 70, 20), k(a + 0.45, 0, 80, 70), k(tC + i * 0.05, 0), k(tC + 0.34 + i * 0.05, 14)], inp=a, outp=tC + 0.45, shade=False))
+        sfx(a + 0.05, "air", 0.5)
+    sfx(12.8 + 0.55, "click", 0.6)
+    sfx(tC - 0.05, "whoosh_soft", 0.5)
     # pink disc from the centre
-    add(Shape("دائرة وردية", "disc", [540, 960], [k(12.4, [0, 0], 70, 20), k(12.95, [2300, 2300], 75, 70)], PINK, inp=12.38))
-    sfx(12.4, "bloom", 0.8)
+    add(Shape("دائرة وردية", "disc", [540, 960], [k(14.75, [0, 0], 70, 20), k(15.30, [2300, 2300], 75, 70)], PINK, inp=14.73))
+    sfx(14.75, "bloom", 0.8)
     # official logo (rosette + wordmark from brand/logo/arabic-english/burgundy.png)
     lg = os.path.join(BRAND, "logo/arabic-english/png/burgundy.png")
     ImgFace("شعار - وردة", lg, crop=(480, 0, 1314, 800), scale=0.46)
     ImgFace("شعار - اسم", lg, crop=(0, 930, 1794, 1690), scale=0.36)
     ry0 = 960 - 160
-    add(piece("شعار - الوردة", "شعار - وردة", pos=[k(12.62, [540, ry0, 0])], rz=[k(12.62, -140, 70, 10), k(13.55, 0, 85, 70)],
-              scale=[k(12.62, 55, 70, 10), k(13.4, 100, 85, 70)], op=[k(12.62, 0), k(12.9, 100)], inp=12.6, shade=False))
-    add(piece("شعار - الاسم", "شعار - اسم", pos=[k(13.05, [540, 960 + 225, 0], 70, 15), k(13.65, [540, 960 + 185, 0], 85, 70)],
-              op=[k(13.05, 0), k(13.45, 100)], blur=[k(13.05, 12), k(13.55, 0)], inp=13.0, shade=False))
-    sfx(13.5, "chime", 0.8)
+    add(piece("شعار - الوردة", "شعار - وردة", pos=[k(14.97, [540, ry0, 0])], rz=[k(14.97, -140, 70, 10), k(15.90, 0, 85, 70)],
+              scale=[k(14.97, 55, 70, 10), k(15.75, 100, 85, 70)], op=[k(14.97, 0), k(15.25, 100)], inp=14.95, shade=False))
+    add(piece("شعار - الاسم", "شعار - اسم", pos=[k(15.40, [540, 960 + 225, 0], 70, 15), k(16.00, [540, 960 + 185, 0], 85, 70)],
+              op=[k(15.40, 0), k(15.80, 100)], blur=[k(15.40, 12), k(15.90, 0)], inp=15.35, shade=False))
+    sfx(15.85, "chime", 0.8)
     # progress: three pale dots + a pink pill that walks 1 -> 2 -> 3 (scenes 2, 3, 4)
     dy = 1470; dx = [540 + 44, 540, 540 - 44]
     for i in range(3):

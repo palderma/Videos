@@ -8,7 +8,7 @@ cascade steps = lighter ticks, big moves = the user's approved whoosh. No voice-
 import numpy as np, os, sys, wave, subprocess, json
 SR = 48000
 WORK = os.environ.get("GB_WORK", "/home/user/gb/work")
-DUR = 14.6; N = int(SR * DUR)
+DUR = 17.0; N = int(SR * DUR)
 rng = np.random.default_rng(1109)
 BEAT = 0.5
 def mf(m): return 440.0 * 2 ** ((m - 69) / 12)
@@ -90,7 +90,7 @@ CH = {"Am9": ([57, 60, 64, 71], 45), "Fmaj7": ([53, 57, 60, 64], 41), "Dm9": ([5
       "Em7": ([52, 55, 59, 62], 40), "G6": ([55, 59, 62, 64], 43), "Cmaj9": ([48, 55, 62, 64], 36)}
 ARP = [0, 2, 1, 3, 2, 1, 3, 2]
 SECT = [(0.0, "Am9", "intro", 5), (2.5, "Am9", "groove", 4), (4.5, "Fmaj7", "groove", 4), (6.5, "Dm9", "groove", 4),
-        (8.5, "Em7", "full", 4), (10.5, "Fmaj7", "full", 3), (12.0, "Cmaj9", "end", 6)]
+        (8.5, "Em7", "full", 4), (10.5, "Fmaj7", "full", 3), (12.0, "Am9", "groove", 4), (14.0, "G6", "groove", 1), (14.5, "Cmaj9", "end", 6)]
 kicks = []
 for t0, name, mode, nb in SECT:
     notes, root = CH[name]
@@ -122,8 +122,8 @@ for t0, name, mode, nb in SECT:
     for b in (1, 3):
         if b < nb: add(clap(), at(b), 0.10 if not full else 0.14, rev=0.4)
     for s16 in range(nb * 4): add(hat(1.0 if s16 % 4 == 2 else 0.45), at(s16 / 4), 0.045 if not full else 0.06, pan=0.35)
-add(riser(1.0), 11.0, 0.06, rev=0.5)
-for j, m in enumerate((72, 76, 79, 83, 86)): add(glock(m, 2.0), 13.5 + j * 0.06, 0.07, pan=-0.5 + 0.25 * j, rev=0.7)
+add(riser(1.0), 13.8, 0.06, rev=0.5)
+for j, m in enumerate((72, 76, 79, 83, 86)): add(glock(m, 2.0), 15.85 + j * 0.06, 0.07, pan=-0.5 + 0.25 * j, rev=0.7)
 duck = np.ones(N)
 for kt in kicks:
     i = int(kt * SR); n = min(N - i, int(0.3 * SR))
