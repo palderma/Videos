@@ -65,13 +65,13 @@ def pill_layers(comp, name, txt, y, tin, tout):
     top = keys((t1, 0), (t1 + 0.5, 100), ease=SM) + keys((tout, 100), (tout + 0.3, 0), ease="in")
     comp.add(text("%s - نص" % name, txt, size, "Bold", BURG, pos=tpos, op=top, inp=t1, outp=tout + 0.45))
 
-def build():
-    c = Comp("التوقيت قبل المناسبة 9x16", W, H, DUR, FPS, bg=BURG)
+def build(tiktok=False):
+    c = Comp("التوقيت قبل المناسبة 9x16" + (" تيك توك" if tiktok else ""), W, H, DUR, FPS, bg=BURG)
     c.add(image("خلفية عنابي متدرجة", BG, pos=[540, 960]))
     # soft pink light behind the calendar, breathing slowly
-    c.add(image("إضاءة وردية خلف التقويم", GLOW, pos=keys((0, [700, 980]), (7.5, [640, 760]), (15, [560, 700]), ease="soft"),
-                scale=keys((0, 120), (15, 150), ease="soft"),
-                op=keys((0, 0), (1.6, 34), (6, 26), (10, 32), (12.4, 26), (14, 40), ease="soft")))
+    c.add(image("إضاءة وردية خلف التقويم", GLOW, pos=keys((0, [700, 980]), (7.5, [640, 760]), (15, [560, 700]), (DUR, [540, 680]), ease="soft"),
+                scale=keys((0, 120), (15, 150), (DUR, 160), ease="soft"),
+                op=keys((0, 0), (1.6, 34), (6, 26), (10, 32), (12.4, 26), (14, 40), (20, 30), (DUR, 40), ease="soft")))
     c.add(footage("التقويم ثلاثي الأبعاد (رندر مع ظلاله)", CALMOV, start=0.0, seq=CALSEQ, pos=[540, 960]))
     LY1, LY2 = 1468, 1586
     s0 = SCENES[0]
@@ -80,10 +80,32 @@ def build():
     for k, s in enumerate(SCENES[1:], 1):
         line_layers(c, "صفحة%d عنوان" % k, s["l1"], 96, "Bold", LY1, s["tin"], s["tout"])
         pill_layers(c, "صفحة%d" % k, s["l2"], LY2 - 17 + 17, s["tin2"], s["tout"] + 0.06)
+    # golden rule (calendar has receded to the top)
+    R_ = RULE; ly = 1062
+    lw = text_width(R_["label"], 44, "Bold") + 70
+    tlb = R_["tlabel"]
+    c.add(rect("القاعدة الذهبية - كبسولة", lw, 76, 38, fill=PINK, inp=tlb, outp=R_["tout"] + 0.45,
+               op=keys((tlb, 0), (tlb + 0.5, 100), ease=SM) + keys((R_["tout"], 100), (R_["tout"] + 0.36, 0), ease="in"),
+               pos=keys((tlb, [540, ly + 18]), (tlb + 0.6, [540, ly]), ease=SM) + keys((R_["tout"], [540, ly]), (R_["tout"] + 0.4, [540, ly - 22]), ease="in")))
+    c.add(text("القاعدة الذهبية - نص", R_["label"], 44, "Bold", BURG, inp=tlb + 0.1, outp=R_["tout"] + 0.45,
+               op=keys((tlb + 0.1, 0), (tlb + 0.6, 100), ease=SM) + keys((R_["tout"], 100), (R_["tout"] + 0.3, 0), ease="in"),
+               pos=keys((tlb + 0.1, [540, ly + 15 + 18]), (tlb + 0.7, [540, ly + 15]), ease=SM) + keys((R_["tout"], [540, ly + 15]), (R_["tout"] + 0.4, [540, ly + 15 - 22]), ease="in")))
+    for si, (runs2, t0, t1) in enumerate(((R_["s1"], R_["t1"], R_["o1"]), (R_["s2"], R_["t2"], R_["tout"]))):
+        for li, runs in enumerate(runs2):
+            line_layers(c, "القاعدة جملة%d سطر%d" % (si + 1, li + 1), runs, 66, "Bold", 1205 + li * 98, t0 + li * 0.32, t1 + li * 0.06, stagger=0.07)
+    # call to action
+    C_ = CTA
+    line_layers(c, "الدعوة سطر1", C_["l1"], 72, "Bold", 1255, C_["tin"], C_["tout"])
+    line_layers(c, "الدعوة سطر2", C_["l2"], 72, "Bold", 1365, C_["tin2"], C_["tout"] + 0.06)
+    for nm_, y_, t_ in (("calendar-heart", 1120, C_["tin"] - 0.1), ):
+        c.add(image("أيقونة احفظه", A + "/icon-%s.png" % nm_, inp=t_, outp=C_["tout"] + 0.45,
+                    pos=keys((t_, [540, y_ + 24]), (t_ + 0.7, [540, y_]), ease=SM) + keys((C_["tout"], [540, y_]), (C_["tout"] + 0.4, [540, y_ - 22]), ease="in"),
+                    scale=keys((t_, 80), (t_ + 0.7, 100), ease=SM),
+                    op=keys((t_, 0), (t_ + 0.5, 100), ease=SM) + keys((C_["tout"], 100), (C_["tout"] + 0.36, 0), ease="in")))
     # ending: strong phrase + official logo
     fy = 1252
-    c.add(image("توهج خلف العبارة", GLOW, pos=[540, fy - 40], scale=keys((12.6, 70), (15, 95), ease="soft"),
-                op=keys((12.6, 0), (13.6, 22), (15, 18), ease=SM)))
+    c.add(image("توهج خلف العبارة", GLOW, pos=[540, fy - 40], scale=keys((FINAL["tin"] - 0.1, 70), (DUR, 95), ease="soft"),
+                op=keys((FINAL["tin"] - 0.1, 0), (FINAL["tin"] + 0.9, 22), (DUR, 18), ease=SM)))
     ws = [text_width(r, 150, "Black") for r, _ in FINAL["runs"]]; sp = 150 * 0.3
     total = sum(ws) + sp; x = 540 + total / 2
     for i, ((r, pk), w) in enumerate(zip(FINAL["runs"], ws)):
@@ -96,10 +118,11 @@ def build():
     c.add(image("شعار بالديرما الرسمي", LOGO, inp=tl_, pos=keys((tl_, [540, 1515]), (tl_ + 0.9, [540, 1490]), ease=SM),
                 op=keys((tl_, 0), (tl_ + 0.8, 100), ease=SM), blur=keys((tl_, 10), (tl_ + 0.7, 0), ease=SM),
                 scale=keys((tl_, 96), (tl_ + 1.2, 100), ease=SM)))
-    c.add(image("إطار الهوية (لوجو + تواصل)", FRAME, pos=[540, 960], op=keys((0, 100), (FRAME_OUT[0], 100), (FRAME_OUT[1], 0), ease=SM),
+    if not tiktok: c.add(image("إطار الهوية (لوجو + تواصل)", FRAME, pos=[540, 960], op=keys((0, 100), (FRAME_OUT[0], 100), (FRAME_OUT[1], 0), ease=SM),
                 outp=FRAME_OUT[1] + 0.05))
     for nm, (t0, d) in FLIPS.items(): c.markers.append((t0, "تقليب صفحة: %s" % nm))
-    c.markers += [(SCENES[1]["tin"], "قبل 4 أسابيع"), (SCENES[2]["tin"], "قبل أسبوعين"), (SCENES[3]["tin"], "قبل أسبوع"), (FINAL["tin"], "التوقيت بيفرق")]
+    c.markers += [(SCENES[1]["tin"], "قبل 4 أسابيع"), (SCENES[2]["tin"], "قبل أسبوعين"), (SCENES[3]["tin"], "قبل أسبوع"),
+                  (RULE["tlabel"], "القاعدة الذهبية"), (CTA["tin"], "الدعوة: احفظه وابعتوه"), (FINAL["tin"], "التوقيت بيفرق")]
     return c
 
 def frame_rgb(c, t, seed):
@@ -111,7 +134,7 @@ def frame_rgb(c, t, seed):
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "assets": make_assets(); sys.exit()
-    c = build()
+    c = build(tiktok=os.environ.get("TIKTOK") == "1")
     if cmd == "still":
         for tv in sys.argv[2].split(","):
             t = float(tv); Image.fromarray(frame_rgb(c, t, 1)).save("%s/st_%05.2f.png" % (HERE, t))

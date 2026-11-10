@@ -43,7 +43,7 @@ def cal_xf(t):
     tz += push
     # ending: calendar recedes and floats up, turning a touch
     fe = seg(t, 12.25, 13.55, 0.55, 0.80)
-    ty += lerp(0, 300, fe); tz += lerp(0, -820, fe); ry += lerp(0, -7, fe); rx += lerp(0, 3, fe)
+    ty += lerp(0, 215, fe); tz += lerp(0, -1060, fe); ry += lerp(0, -7, fe); rx += lerp(0, 3, fe)
     blur = 14 * (1 - seg(t, 0.0, 1.7, 0.2, 0.8))
     return rot(rx, ry, rz), np.array([0.0, ty, tz]), blur
 

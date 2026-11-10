@@ -6,7 +6,7 @@ Paper flips are synthesised: lift crackle, air swoosh following the page speed, 
 import numpy as np, os, wave
 from scipy.signal import butter, sosfilt
 import sys; sys.path.insert(0, "/home/user/cal")
-from tl import FLIPS, FINAL, DUR
+from tl import FLIPS, FINAL, DUR, RULE, CTA
 
 SR = 48000; N = int(SR * DUR)
 rng = np.random.default_rng(11)
@@ -105,6 +105,12 @@ CH = [  # (bar start beat, pad notes, bass, piano arpeggio)
     (12, [57, 61, 64, 66], 33, [69, 73, 76, 78]),      # A6
     (16, [59, 62, 66, 69], 35, [71, 74, 78, 81]),      # Bm7
     (20, [55, 59, 62, 66, 69], 31, [74, 78, 79, 81]),  # Gmaj9
+    (24, [59, 62, 66, 69], 35, [71, 74, 78, 81]),      # Bm7   golden rule
+    (28, [55, 59, 62, 66], 31, [71, 74, 78, 79]),      # Gmaj7
+    (32, [52, 55, 59, 62, 66], 28, [67, 71, 74, 78]),  # Em9
+    (36, [57, 61, 64, 66], 33, [69, 73, 76, 78]),      # A6
+    (40, [59, 62, 66, 69, 73], 35, [71, 74, 78, 81]),  # Bm9   call to action
+    (44, [55, 59, 62, 66, 69], 31, [74, 78, 79, 81]),  # Gmaj9
 ]
 for b, pn, bs, arp in CH:
     add(pad(pn, 2.4, att=0.9 if b else 1.5), bt(b) - 0.2, 0.22, rev=0.4)
@@ -114,12 +120,15 @@ for b, pn, bs, arp in CH:
         add(piano(m, 2.4, 0.9 if j == 0 else 0.6), bt(b + j), 0.20, pan=(-0.3, 0.2, -0.1, 0.3)[j], rev=0.35)
 # final: Dmaj9 resolves under «التوقيت بيفرق»
 tf = FINAL["tin"]
-add(pad([50, 62, 66, 69, 73, 76], 15 - tf + 0.2, att=0.4, rel=1.6), tf - 0.1, 0.30, rev=0.5)
+add(pad([50, 62, 66, 69, 73, 76], DUR - tf + 0.2, att=0.4, rel=1.6), tf - 0.1, 0.30, rev=0.5)
 add(bass(38, 2.3), tf, 0.32, rev=0.05)
 for j, m in enumerate([74, 78, 81, 85, 88]):
     add(piano(m, 2.6, 0.8), tf + 0.06 + j * 0.16, 0.20, pan=(-0.3, 0.3, -0.15, 0.15, 0)[j], rev=0.45)
 add(boom(), tf - 0.02, 0.32, rev=0.15)
 add(swell(1.1, 400, 7000), tf - 1.1, 0.06, rev=0.3)
+for tg in (RULE["tlabel"], RULE["t2"]):
+    add(glock(86), tg, 0.08, rev=0.6); add(glock(90), tg + 0.14, 0.06, rev=0.6)
+add(swell(0.9, 300, 3000), CTA["tin"] - 0.9, 0.05, rev=0.4)
 for j, m in enumerate([93, 97, 100]):
     add(glock(m), FINAL["logo"] + 0.15 + j * 0.12, 0.10, pan=(-0.2, 0.2, 0)[j], rev=0.6)
 # clock ticks while time passes: 2.8 .. 12.3
