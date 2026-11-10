@@ -24,7 +24,9 @@ ASSETS = "/home/user/palderma-videos/style-guide/assets"
 FRAME_PNG = os.path.join(ASSETS, "templates", "frame-9x16.png")
 OUTRO_MP4 = os.path.join(ASSETS, "خاتمة-عمودي-9x16.mp4")
 FRAME_OP = [k(0.0, 0), k(0.35, 100), k(16.35, 100), k(16.7, 0)]
-CY = 1010; TOPY = 440           # content centre / progress row (clear of the frame header)
+CY = 1010; TOPY = 440
+PAIR_W = (410, 490)
+PAIR_X = (540 + 10 + 205, 540 - 10 - 245)   # «غالبًا» | «عادي» centres + widths (v4/v5); v6 overrides
 
 def swing_in(nl, face, t_in, step=0.0625, dur=0.34):
     """v2 entrance: every strip of the tile (both halves) swings up from edge-on, one per 1/16 note"""
@@ -154,9 +156,9 @@ def build4():
 
     # ======================= idea 2: «خطيرة» -> «غالبًا» | «عادي» (v2: Y-turn split) =======================
     Face("خطيرة", 920, 300, "خطيرة", 205, "Bold", PALE)
-    Face("غالبًا", 410, 270, "غالبًا", 175, "Bold", WHITE)
-    Face("عادي", 490, 270, "عادي", 175, "Bold", INK, fill=PINK, stroke=PINK_STROKE)
-    ShadowFace("ظل خطير", 920, 300); ShadowFace("ظل غالبا", 410, 270); ShadowFace("ظل عادي", 490, 270)
+    Face("غالبًا", PAIR_W[0], 270, "غالبًا", 175, "Bold", WHITE)
+    Face("عادي", PAIR_W[1], 270, "عادي", 175, "Bold", INK, fill=PINK, stroke=PINK_STROKE)
+    ShadowFace("ظل خطير", 920, 300); ShadowFace("ظل غالبا", PAIR_W[0], 270); ShadowFace("ظل عادي", PAIR_W[1], 270)
     s0 = S[1]; t_in = s0 + 0.2
     tA, tB = 7.15, 7.43; tC = tB + 0.38; tE = END[1]
     n3 = null("مفتاح - الفكرة 02", [540, CY, 0])
@@ -173,7 +175,7 @@ def build4():
                           op=[k(a, 0), k(a + 0.12, 100)], parent=n3, inp=a, outp=tB))
             ent3.append(p)
         sfx(b, "click", 0.7, pan=(cxs / 920 - 0.5) * 0.6)
-    xR, xL = 540 + 10 + 205, 540 - 10 - 245
+    xR, xL = PAIR_X
     for p in ent3:
         cx_local = p.pos[-1].v[0]
         right = cx_local > 0
