@@ -199,6 +199,8 @@ def main(pkg):
             outp = S.outp if S.outp is not None else gb.VLEN
             w("try { L.inPoint = %s; L.outPoint = %s; } catch (e) {}\n" % (r(max(0, S.inp)), r(min(outp, gb.VLEN))))
         w("} catch (err) { ERRS.push(%s + ': ' + err.toString() + ' (line ' + err.line + ')'); }\n" % js(L.name))
+    ex = getattr(gb, "JSX_EXTRA", None)
+    if ex: w(ex(pkg, js, r))
     # camera + audio
     w('''try { var CAM = MAIN.layers.addCamera("الكاميرا", [540, 960]);
   CAM.property("ADBE Camera Options Group").property("ADBE Camera Zoom").setValue(%s);
