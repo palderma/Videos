@@ -92,7 +92,11 @@ function faceComp(name, w, h, dur, card, txt) {
     rectMask(hl, 0, 0, w, h / 2);
     if (card.hinge) rectShape(C, "خط المفصل", w, 4, 0, [w / 2, h / 2], [0, 0, 0], 55, null, 0);
   }
-  if (txt) {
+  if (txt) faceText(C, txt, w / 2);
+  return C;
+}
+function faceText(C, txt, x) {
+  {
     var L = C.layers.addText(txt.s); L.name = "النص: " + txt.s;
     var p = L.property("ADBE Text Properties").property("ADBE Text Document"); var td = p.value;
     try { td.resetCharStyle(); td.resetParagraphStyle(); } catch (e) {}
@@ -101,9 +105,9 @@ function faceComp(name, w, h, dur, card, txt) {
     try { td.paragraphDirection = ParagraphDirection.DIRECTION_RIGHT_TO_LEFT; } catch (e) {}
     p.setValue(td);
     TR(L, "ADBE Anchor Point").expression = "var r = sourceRectAtTime(time, false); [r.left + r.width / 2, 0];";
-    TR(L, "ADBE Position").setValue([w / 2, txt.base]);
+    TR(L, "ADBE Position").setValue([x, txt.base]);
   }
-  return C;
+  return L;
 }
 function fx(L, mn) { return L.property("ADBE Effect Parade").addProperty(mn); }
 function effP(E, matchName, idx) { try { var p = E.property(matchName); if (p) return p; } catch (e) {} return E.property(idx); }
@@ -118,8 +122,9 @@ def main(pkg):
     out = [HEAD]; w = out.append
     w("var MAIN = proj.items.addComp(%s, 1080, 1920, 1, %s, 30); MAIN.parentFolder = top; MAIN.bgColor = %s; MAIN.motionBlur = true;\n" % (
         js("جلد الأوزة - 3 أفكار غلط (9x16)"), gb.VLEN, js(col(gb.WINE))))
-    for t, m in ((0, "المشهد 1: العنوان"), (2.22, "المشهد 2: مستحيل تروح ← هاي شائعة"), (5.5, "المشهد 3: خطيرة ← غالبًا عادي"),
-                 (8.5, "المشهد 4: ما إلها حل ← إلها خيارات بعد الفحص"), (12.05, "المشهد 5: الدعوة: ابعتوه لحدا بيخبي ذراعه بالأكمام"), (14.75, "الشعار الرسمي")):
+    MK = getattr(gb, "MARKERS", None) or [(0, "المشهد 1: العنوان"), (2.22, "المشهد 2: مستحيل تروح ← هاي شائعة"), (5.5, "المشهد 3: خطيرة ← غالبًا عادي"),
+                 (8.5, "المشهد 4: ما إلها حل ← إلها خيارات بعد الفحص"), (12.05, "المشهد 5: الدعوة: ابعتوه لحدا بيخبي ذراعه بالأكمام"), (14.75, "الشعار الرسمي")]
+    for t, m in MK:
         w("try { MAIN.markerProperty.setValueAtTime(%s, new MarkerValue(%s)); } catch (e) {}\n" % (t, js(m)))
     # faces
     fvar = {}
@@ -135,6 +140,11 @@ def main(pkg):
         card = "null" if f.fill is None else js({"r": f.radius, "fill": col(f.fill), "stroke": col(f.stroke) if f.stroke else None, "hinge": bool(f.hinge)})
         txt = "null" if not f.txt else js({"s": f.txt, "font": kf.FONT_PS[f.weight], "size": f.size, "col": col(f.color), "base": round(f.base, 2)})
         w("var %s = faceComp(%s, %d, %d, %s, %s, %s);\n" % (v, js("وجه - " + nm), f.w, f.h, gb.VLEN, card, txt))
+        for it in getattr(f, "items", []):
+            if it["kind"] == "rect":
+                w("rectShape(%s, 'خلفية داخلية', %s, %s, %s, %s, %s, 100, null, 0);\n" % (v, it["w"], it["h"], it["r"], js([it["x"], it["y"]]), js(col(it["fill"]))))
+            else:
+                w("faceText(%s, %s, %s);\n" % (v, js({"s": it["s"], "font": kf.FONT_PS[it.get("weight", "Bold")], "size": it["size"], "col": col(it["col"]), "base": round(it["base"], 2)}), round(it["x"], 2)))
     # background
     w("try { var BG = MAIN.layers.add(imp('footage/خلفية.png')); BG.name = 'الخلفية العنابية'; BG.locked = true; } catch (e) { ERRS.push('bg: ' + e); }\n")
     # nulls

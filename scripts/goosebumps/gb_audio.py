@@ -8,7 +8,7 @@ cascade steps = lighter ticks, big moves = the user's approved whoosh. No voice-
 import numpy as np, os, sys, wave, subprocess, json
 SR = 48000
 WORK = os.environ.get("GB_WORK", "/home/user/gb/work")
-DUR = 17.0; N = int(SR * DUR)
+DUR = float(os.environ.get("GB_DUR", "17.0")); N = int(SR * DUR)
 rng = np.random.default_rng(1109)
 BEAT = 0.5
 def mf(m): return 440.0 * 2 ** ((m - 69) / 12)
