@@ -17,22 +17,22 @@ FRAME = A + "templates/frame-9x16.png"
 OUTRO = A + "خاتمة-عمودي-9x16.mp4"
 WINE, PINK, WHITE = (108, 13, 43), (243, 165, 189), (255, 255, 255)
 FPS = 30
-OUTRO_AT = 29.15
+OUTRO_AT = 33.65
 TOTAL = OUTRO_AT + 6.0
 
 # ------------------------------------------------------------------ ice timeline
 EV_SPEC = [  # kind, t0, t1, seed, origins(x, y, weight) , crack_at, crack origin
     ("melt", 2.90, 4.40, 101, [(540, 1060, 1.0), (560, 760, 1.25)], 2.45, (540, 1000)),
-    ("freeze", 6.90, 7.70, 102, None, None, None),
-    ("melt", 8.10, 9.60, 103, [(700, 1180, 1.0), (380, 800, 1.3)], 7.85, (640, 1150)),
-    ("freeze", 12.10, 12.90, 104, None, None, None),
-    ("melt", 13.30, 14.80, 105, [(420, 1240, 1.0), (640, 820, 1.2)], 13.05, (430, 1230)),
-    ("freeze", 17.50, 18.30, 106, None, None, None),
-    ("melt", 18.70, 20.20, 107, [(560, 1200, 1.0), (520, 700, 1.3)], 18.45, (560, 1180)),
-    ("freeze", 22.70, 23.50, 108, None, None, None),
-    ("melt", 23.90, 25.40, 109, [(540, 1120, 1.0), (380, 760, 1.4), (700, 760, 1.4)], 23.65, (540, 1110)),
-    ("freeze", 28.20, 29.00, 110, None, None, None),
-    ("melt", 29.30, 30.80, 111, [(540, 960, 1.0)], 29.05, (540, 960)),
+    ("freeze", 7.90, 8.70, 102, None, None, None),
+    ("melt", 9.10, 10.60, 103, [(700, 1180, 1.0), (380, 800, 1.3)], 8.85, (640, 1150)),
+    ("freeze", 14.10, 14.90, 104, None, None, None),
+    ("melt", 15.30, 16.80, 105, [(420, 1240, 1.0), (640, 820, 1.2)], 15.05, (430, 1230)),
+    ("freeze", 20.50, 21.30, 106, None, None, None),
+    ("melt", 21.70, 23.20, 107, [(560, 1200, 1.0), (520, 700, 1.3)], 21.45, (560, 1180)),
+    ("freeze", 26.70, 27.50, 108, None, None, None),
+    ("melt", 27.90, 29.40, 109, [(540, 1120, 1.0), (380, 760, 1.4), (700, 760, 1.4)], 27.65, (540, 1110)),
+    ("freeze", 32.70, 33.50, 110, None, None, None),
+    ("melt", 33.80, 35.30, 111, [(540, 960, 1.0)], 33.55, (540, 960)),
 ]
 _EVS = None
 def evs():
@@ -43,12 +43,12 @@ def evs():
 
 def glint(t):
     # one slow light sweep across the frozen title, then again on each fully frozen hold
-    for a in (0.6, 7.75, 12.95, 18.35, 23.55, 29.0):
+    for a in (0.6, 8.75, 14.95, 21.35, 27.55, 33.5):
         if a <= t <= a + 1.6:
             return -300 + (t - a) / 1.6 * 2700
     return None
 
-SWAPS = [7.90, 13.10, 18.50, 23.70]       # slide changes happen under full frost
+SWAPS = [8.90, 15.10, 21.50, 27.70]       # slide changes happen under full frost
 
 def k_(*a, **kw): return keys(*a, **kw)
 
@@ -64,6 +64,17 @@ def word_line(c, name, words, size, y, inp, outp, weight="Bold", gap=0.30, op=No
                        op=op if op is not None else 100.0))
         out.append(L); x -= wd + sp
     return out
+
+def block(c, name, mains, sub, a, b, op, rv, y0=1205):
+    """mains = list of word lists [(txt, col)], sub = plain white line under them"""
+    y = y0; keyw = []
+    for j, ws in enumerate(mains):
+        Ls = word_line(c, "%s - سطر %d" % (name, j + 1), ws, 96, y, a, b, op=op)
+        keyw += [L for L, (_, col) in zip(Ls, ws) if col == PINK]
+        y += 122
+    word_line(c, name + " - سطر فرعي", [(w, WHITE) for w in sub.split()], 58, y - 10, a, b, weight="Medium",
+              op=[K(x.t, x.v * 0.82) for x in op])
+    for L in keyw: pulse(L, rv - 0.1)
 
 def fade_ops(inp, outp, fin=0.25, fout=0.25):
     ks = []
@@ -111,19 +122,15 @@ def build():
     header(C, a, b, op); chips(C, 1, a, b, op)
     disc(C, "أيقونة 1", 540, 840, 330, a, b, op)
     C.add(image("أيقونة 1 - شمس وغيمة", icons.icon("cloud-sun", WHITE, IC), pos=[K(0, [540, 840]), K(rv, [540, 840], 60, 60), K(rv + 1.2, [540, 828], 60, 60), K(b, [540, 834], 60, 60)], inp=a, outp=b, op=op))
-    ws = word_line(C, "سطر 1", [("شمس", WHITE), ("أقل", PINK), ("نسبيًا", WHITE)], 104, 1250, a, b, op=op)
-    pulse(ws[1], rv - 0.2)
+    block(C, "نقطة 1", [[("الشمس", WHITE), ("أضعف", PINK)]], "والبشرة بعد التقشير حساسة للشمس", a, b, op, rv, y0=1235)
 
     # ---- slide 2 : حماية أسهل بعد الجلسة + shield
     a, b, op = slide(1); rv = EV_SPEC[2][2]
     header(C, a, b, op); chips(C, 2, a, b, op)
     disc(C, "أيقونة 2", 540, 840, 330, a, b, op)
-    C.add(image("أيقونة 2 - درع", icons.icon("shield", WHITE, IC), pos=[540, 840], inp=a, outp=b, op=op))
-    C.add(image("أيقونة 2 - علامة صح", icons.icon("check", PINK, IC, sw=2.2), pos=[540, 840], inp=a, outp=b, op=op,
-                scale=[K(0, 0), K(rv - 0.25, 0, 70, 70), K(rv + 0.15, 118, 60, 60), K(rv + 0.45, 100, 60, 60)]))
-    ws = word_line(C, "سطر 2أ", [("حماية", WHITE), ("أسهل", PINK)], 104, 1215, a, b, op=op)
-    word_line(C, "سطر 2ب", [("بعد", WHITE), ("الجلسة", WHITE)], 104, 1355, a, b, op=op)
-    pulse(ws[1], rv - 0.1)
+    C.add(image("أيقونة 2 - قطرات", icons.icon("droplets", WHITE, IC), pos=[540, 840], inp=a, outp=b, op=op,
+                scale=[K(0, 100), K(rv - 0.25, 100, 60, 60), K(rv + 0.15, 108, 60, 60), K(rv + 0.5, 100, 60, 60)]))
+    block(C, "نقطة 2", [[("حر", WHITE), ("وعرق", WHITE), ("أقل", PINK)]], "يعني تهيّج أقل بفترة التعافي", a, b, op, rv, y0=1235)
 
     # ---- slide 3 : مش للجميع: الفحص أول + scan face
     a, b, op = slide(2); rv = EV_SPEC[4][2]
@@ -137,25 +144,16 @@ def build():
         sc_o += [K(s0, 0), K(s0 + 0.12, 90), K(s0 + 0.68, 90), K(s0 + 0.8, 0)]
     C.add(rect("أيقونة 3 - خط المسح", 170, 5, 2.5, fill=PINK, pos=[K(0, [540, 760])] and [K(k.t, [540, k.v], k.i, k.o) for k in sc_y],
                inp=a, outp=b, op=sc_o, blur=1.5))
-    word_line(C, "سطر 3أ", [("مش", WHITE), ("للجميع:", WHITE)], 104, 1215, a, b, op=op)
-    ws = word_line(C, "سطر 3ب", [("الفحص", PINK), ("أول", PINK)], 112, 1360, a, b, op=op)
-    for L in ws: pulse(L, rv - 0.1)
+    block(C, "نقطة 3", [[("البشرة", WHITE), ("باهتة", PINK)], [("وناشفة", PINK), ("بالشتا", WHITE)]], "والتقشير بيجدد مظهرها", a, b, op, rv)
 
     # ---- slide 4 : واقي شمس يوميًا + tube + 7 days
     a, b, op = slide(3); rv = EV_SPEC[6][2]
     header(C, a, b, op); chips(C, 4, a, b, op)
     disc(C, "أيقونة 4", 540, 840, 330, a, b, op)
-    C.add(image("أيقونة 4 - واقي شمس", icons.icon("tube", WHITE, IC), pos=[540, 840], inp=a, outp=b, op=op,
+    C.add(image("أيقونة 4 - تقويم", icons.icon("calendar-heart", WHITE, IC), pos=[540, 840], inp=a, outp=b, op=op,
                 rot=[K(0, 0), K(rv - 0.2, 0, 60, 60), K(rv + 0.25, -7, 60, 60), K(rv + 0.6, 4, 60, 60), K(rv + 0.9, 0, 60, 60)]))
-    word_line(C, "سطر 4أ", [("واقي", WHITE), ("شمس", WHITE)], 104, 1215, a, b, op=op)
-    ws = word_line(C, "سطر 4ب", [("يوميًا", PINK)], 112, 1360, a, b, op=op)
-    pulse(ws[0], rv + 1.4)
-    for d in range(7):
-        x = 540 + 3 * 46 - d * 46
-        C.add(ellipse("يوم %d" % (d + 1), 22, fill=WHITE, fill_op=24, pos=[x, 1462], inp=a, outp=b, op=op))
-        td = rv - 0.15 + d * 0.16
-        C.add(ellipse("يوم %d - وردي" % (d + 1), 22, fill=PINK, pos=[x, 1462], inp=a, outp=b, op=op,
-                      scale=[K(0, 0), K(td, 0, 70, 70), K(td + 0.22, 125, 60, 60), K(td + 0.4, 100, 60, 60)]))
+    block(C, "نقطة 4", [[("بتلحق", WHITE), ("قبل", WHITE), ("مناسبات", PINK)], [("آخر", PINK), ("السنة", PINK), ("والصيف", PINK)]],
+          "النتيجة بتحتاج وقت", a, b, op, rv)
 
     # ---- slide 5 : CTA
     a, b, op = slide(4); rv = EV_SPEC[8][2]
@@ -170,7 +168,7 @@ def build():
                 inp=a, outp=b, op=op, rot=[K(0, 0), K(t2, 0, 60, 60), K(t2 + 0.35, -8, 60, 60), K(t2 + 0.8, 0, 60, 60)]))
     ws = word_line(C, "دعوة أ", [("احفظوه", PINK)], 150, 1150, a, b, weight="Black", op=op)
     pulse(ws[0], rv + 0.05)
-    word_line(C, "دعوة ب", [("وابعتوه", WHITE), ("برسالة", WHITE), ("خاصة", WHITE)], 84, 1290, a, b, op=op)
+    word_line(C, "دعوة ب", [("وابعتوه", WHITE), ("لحدا", WHITE), ("بيأجل", WHITE), ("التقشير", PINK)], 78, 1290, a, b, op=op)
 
     # ---- outro (official pink Palderma outro), revealed by the last melt
     C.add(footage("الخاتمة الوردية (قالب بالديرما)", OUTRO, start=OUTRO_AT, inp=OUTRO_AT, outp=TOTAL))
@@ -193,10 +191,10 @@ def build():
     for j, L in enumerate(l2):
         t0 = 1.0 + j * 0.14
         L.op = [K(t0, 0), K(t0 + 0.4, 100)]; L.blur = [K(t0, 14), K(t0 + 0.45, 0)]
-    C.markers = [(0, "العنوان على الجليد"), (2.45, "تشقق"), (2.9, "ذوبان 1: شمس أقل نسبيًا"), (6.9, "تجمّد"),
-                 (8.1, "ذوبان 2: حماية أسهل"), (12.1, "تجمّد"), (13.3, "ذوبان 3: الفحص أول"), (17.5, "تجمّد"),
-                 (18.7, "ذوبان 4: واقي شمس يوميًا"), (22.7, "تجمّد"), (23.9, "ذوبان 5: احفظوه وابعتوه"), (28.2, "تجمّد"),
-                 (29.3, "ذوبان 6: الخاتمة الوردية")]
+    C.markers = [(0, "العنوان على الجليد"), (2.45, "تشقق"), (2.9, "ذوبان 1: الشمس أضعف"), (7.9, "تجمّد"),
+                 (9.1, "ذوبان 2: حر وعرق أقل"), (14.1, "تجمّد"), (15.3, "ذوبان 3: البشرة باهتة وناشفة"), (20.5, "تجمّد"),
+                 (21.7, "ذوبان 4: مناسبات آخر السنة"), (26.7, "تجمّد"), (27.9, "ذوبان 5: احفظوه وابعتوه"), (32.7, "تجمّد"),
+                 (33.8, "ذوبان 6: الخاتمة الوردية")]
     return C, T
 
 def frame_at(C, T, t):
